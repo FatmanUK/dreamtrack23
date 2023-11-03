@@ -31,6 +31,8 @@ def env_inventory(scriptdir, env):
 def playbook(action, env, wants_vault=True, hosts='all'):
     print('Env: ' + env)
     print('Action: ' + action)
+    if action == 'prep':
+      wants_vault = False
     DIR_SCRIPT=scriptdir()
     HOSTS=env_hosts(env, hosts)
     PLAYBOOK=env_playbook(DIR_SCRIPT, action)
