@@ -1,0 +1,13 @@
+---
+- import_playbook: 'check_ansible_version.yml'
+
+- name: 'Shutdown tier 1'
+  hosts: 'tier_1'
+  gather_facts: no
+  become: no
+  handlers:
+    - import_tasks: '../handlers/main.yml'
+  roles:
+    - 'tier_down'
+...
+# vim: set filetype=yaml

@@ -7,5 +7,6 @@ vm_make_dhcpcd_no_route:
   - '127.0.0.0/8'
 
 boot_post_delay: 5
+shutdown_post_delay: 5
 ...
 # vim: set filetype=yaml
