@@ -6,7 +6,7 @@
     local_follow: yes # locally, follow annex symlinks
     owner: '{{ virts_user }}'
     group: '{{ virts_user }}'
-    mode: '0644'
+    mode: '0664' # needs to have g+w to work
 
 # TODO: add changed_when / failed_when
 - name: 'Update libguestfs appliance'

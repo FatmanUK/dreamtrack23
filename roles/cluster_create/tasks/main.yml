@@ -49,7 +49,7 @@
     dest: '{{ virts_image_dest }}/{{ inventory_hostname }}.qcow2'
     owner: '{{ virts_user }}'
     group: '{{ virts_user }}'
-    mode: '0644'
+    mode: '0664' # needs g+w to work
 
 - name: 'Assemble machine.xml.j2'
   connection: 'local'

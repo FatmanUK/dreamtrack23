@@ -4,6 +4,7 @@ all:
     domain: 'dreamtrack.test'
     hypervisor_host: 'localhost'
     virtual_cpus: 1
+    fqdn: '{{ inventory_hostname }}.{{ domain }}'
 
 # backend_fourth_octet: Used with netmask to calculate the IP address.
 # A bit odd but DRY.
@@ -18,11 +19,15 @@ hosts_physical:
   children:
     control:
 
-virts_cluster:
+tier_1:
   children:
     auth:
     data:
     logs:
+
+virts_cluster:
+  children:
+    tier_1:
 
 auth:
   vars:
