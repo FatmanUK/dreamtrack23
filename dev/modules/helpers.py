@@ -1,6 +1,6 @@
 from os import environ
 from os.path import dirname, realpath, exists
-from sys import argv
+from sys import argv, stdin, stdout, stderr
 import ansible_runner
 
 ERR_NO_VAULT=1
@@ -32,7 +32,10 @@ def playbook(action, env, wants_vault=True, hosts='all'):
     print('Env: ' + env)
     print('Action: ' + action)
     if action == 'prep':
-      wants_vault = False
+        wants_vault = False
+    wants_root = False
+    if action == 'create':
+        wants_root = True
     DIR_SCRIPT=scriptdir()
     HOSTS=env_hosts(env, hosts)
     PLAYBOOK=env_playbook(DIR_SCRIPT, action)
@@ -47,10 +50,12 @@ def playbook(action, env, wants_vault=True, hosts='all'):
     args=[]
     args.append(f'--limit={HOSTS}')
     args.append(f'--inventory={ANSIBLE_INVENTORY}')
+    if wants_root:
+        args.append(f'--ask-become-pass')
     if wants_vault:
         args.append(f'-e@{VAULT}')
         args.append(f'--vault-password-file={VAULT_SECRET}')
     args += argv[1:]
     args.append(f'{PLAYBOOK}')
     print(f'Running with args: {args}')
-    ansible_runner.run_command('/usr/bin/ansible-playbook', cmdline_args=args)
+    ansible_runner.run_command('/usr/bin/ansible-playbook', cmdline_args=args, input_fd=stdin, output_fd=stdout, error_fd=stderr)
