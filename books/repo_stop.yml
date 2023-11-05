@@ -1,0 +1,24 @@
+---
+- name: 'Check Ansible version'
+  tags:
+    - 'always'
+  import_playbook: 'check_ansible_version.yml'
+
+- name: 'Check Ansible Vault is loaded'
+  tags:
+    - 'always'
+  import_playbook: 'check_vault_loaded.yml'
+
+- name: 'Stop repo server'
+  hosts: 'control'
+  gather_facts: no
+  connection: 'local'
+  run_once: yes
+  handlers:
+    - import_tasks: '../handlers/main.yml'
+  tags:
+    - 'always'
+  roles:
+    - 'repo_stop'
+...
+# vim: set filetype=yaml

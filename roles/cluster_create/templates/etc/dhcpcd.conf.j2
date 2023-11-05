@@ -1,0 +1,10 @@
+# {{ ansible_managed }}
+interface eth0
+  static ip_address={{ ansible_host_prefix }}
+  static routers={{ default_gateway }}
+  static domain_name_servers={{ vip }}
+  static domain_search={{ domain }}
+  noipv6
+  noipv4ll
+  nodhcp
+

@@ -1,0 +1,17 @@
+---
+- name: 'Copy base image'
+  copy:
+    src: '../annex/{{ virts_base_image }}'
+    dest: '{{ virts_image_dest }}/base.qcow2'
+    local_follow: yes # locally, follow annex symlinks
+    owner: '{{ virts_user }}'
+    group: '{{ virts_user }}'
+    mode: '0644'
+
+# TODO: add changed_when / failed_when
+- name: 'Update libguestfs appliance'
+  command:
+    argv:
+      - '/usr/bin/update-libguestfs-appliance'
+...
+# vim: set filetype=yaml

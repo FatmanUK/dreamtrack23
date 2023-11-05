@@ -1,0 +1,32 @@
+---
+xbps_static_package: 'xbps-static-static-0.59_5.x86_64-musl.tar.xz'
+xbps_static_arch: 'x86_64'
+xbps_static_byline: 'Adam J. Richardson <fatman.uk@gmail.com>'
+download_enabled: no
+
+# xbps_static_binary_path: '{{ repository_root }}/usr/bin'
+xbps_static_data_path: '{{ repository_root }}/var/db/xbps'
+xbps_static_cache_path: '{{ repository_cwd }}'
+xbps_tmp: '{{ xbps_static_repository | replace(":", "_") }}'
+xbps_static_repodir: '{{ xbps_tmp | replace("/", "_") | replace(".", "_") }}'
+xbps_static_pem_path: '{{ repository_root }}/keys'
+xbps_static_pem_key: 'sign-xbps-index.pem'
+
+xbps_static_custom_packages: [ ]
+#  - '389-ds-base-2.0.4_1'
+#  - 'elasticsearch-8.6.2_1'
+#  - 'fuzzball-7.0_1'
+#  - 'libguestfs-1.44.0_1'
+#  - 'openssh-9.3p1_2'
+#  - 'qcad-3.26.4.2_1'
+#  - 'qcad-devel-3.26.4.2_1'
+#  - 'realmd-0.17.0_1'
+#  - 'ruby-2.7.3_1'
+#  - 'solarized-light-grub2-1.0_1'
+#  - 'sudo-1.9.11p3_2'  # sudo built with LDAP support
+#  - 'supermin-5.2.1_3'
+#  - 'trac-1.5.4_1'
+#  - 'tutanota-3.91.6_1'
+#  - 'xwobf-0.0_1'
+...
+# vim: set filetype=yaml

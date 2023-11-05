@@ -1,0 +1,9 @@
+---
+virts_make_dhcpcd_configs:
+  - '/etc/dhcpcd.conf'
+  - '/etc/dhcpcd.exit-hook'
+
+vm_make_dhcpcd_no_route:
+  - '127.0.0.0/8'
+...
+# vim: set filetype=yaml

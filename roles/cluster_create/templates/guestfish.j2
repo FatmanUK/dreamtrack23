@@ -1,0 +1,11 @@
+add {{ disk }}
+run
+mount /dev/sda1 /
+copy-in ~/.ssh/id_rsa.pub /home/ansible/.ssh
+mv /home/ansible/.ssh/id_rsa.pub /home/ansible/.ssh/authorized_keys
+chmod 0600 /home/ansible/.ssh/authorized_keys
+chown {{ ansible_uid }} {{ ansible_gid }} /home/ansible/.ssh/authorized_keys
+copy-in /tmp/{{ inventory_hostname }}-dhcpcd.conf /tmp/{{ inventory_hostname }}-dhcpcd.exit-hook /etc
+mv /etc/{{ inventory_hostname }}-dhcpcd.conf /etc/dhcpcd.conf
+mv /etc/{{ inventory_hostname }}-dhcpcd.exit-hook /etc/dhcpcd.exit-hook
+

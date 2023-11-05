@@ -1,0 +1,101 @@
+---
+- name: 'Create per-host dhcpcd configs'
+  connection: 'local'
+  loop: '{{ virts_make_dhcpcd_configs }}'
+  template:
+    src: '{{ item[1:] }}.j2'
+    dest: '/tmp/{{ inventory_hostname }}-{{ item | basename }}'
+    mode: '0600'
+
+# To make this variablisableible, create on control host and transfer
+# to hypervisor host, even if that's less efficient.
+# TODO: add changed_when / failed_when
+- name: 'Create virt overlay image'
+  connection: 'local'
+  vars:
+    command: '/usr/bin/qemu-img create'
+    formats: '-fqcow2 -Fqcow2'
+    embed_cmd: 'readlink -f ../annex/{{ virts_base_image }}'
+    base_disk: '-obacking_file=$({{ embed_cmd }})'
+    new_disk: '/tmp/{{ inventory_hostname }}.qcow2'
+  shell: '{{ command }} {{ formats }} {{ base_disk }} {{ new_disk }}'
+
+- name: 'Write out guestfish scripts'
+  connection: 'local'
+  vars:
+    disk: '/tmp/{{ inventory_hostname }}.qcow2'
+    ansible_uid: '1999' # TODO: erm... get from base image?
+    ansible_gid: '1999'
+  template:
+    src: 'guestfish.j2'
+    dest: '/tmp/{{ inventory_hostname }}-guestfish.txt'
+
+# TODO: changed_when/failed_when
+- name: 'Inject SSH and network settings'
+  connection: 'local'
+  command:
+    argv:
+      - '/bin/guestfish'
+      - '-f'
+      - '/tmp/{{ inventory_hostname }}-guestfish.txt'
+
+# Copy prepped image
+# Confirmed: works on dev env, needs test on prod
+- name: 'Copy prepared image'
+  delegate_to: '{{ hostvars[inventory_hostname].hypervisor_host }}'
+  become: yes
+  copy:
+    src: '/tmp/{{ inventory_hostname }}.qcow2'
+    dest: '{{ virts_image_dest }}/{{ inventory_hostname }}.qcow2'
+    owner: '{{ virts_user }}'
+    group: '{{ virts_user }}'
+    mode: '0644'
+
+- name: 'Assemble machine.xml.j2'
+  connection: 'local'
+  assemble:
+    src: '../roles/cluster_create/files/fragments'
+    dest: '/tmp/machine.xml.j2'
+
+- name: 'Template out machine definition'
+  connection: 'local'
+  template:
+    src: '/tmp/machine.xml.j2'
+    dest: '/tmp/{{ inventory_hostname }}.xml'
+    mode: '0600'
+    validate: '/usr/bin/virt-xml-validate %s'
+
+# become: no puts these in user session
+- name: 'Define remote virts'
+  register: 'rg_define_virts'
+  delegate_to: '{{ hypervisor_host }}'
+  # become: yes
+  vars:
+    e_already: 'already exists with uuid'
+    virts_xml: '/tmp/{{ inventory_hostname }}.xml'
+  changed_when:
+    - 'rg_define_virts.rc == 0'
+  failed_when:
+    - 'rg_define_virts.rc != 0'
+    - 'e_already not in rg_define_virts.stderr'
+  command:
+    argv:
+      - '/usr/bin/virsh'
+      - 'define'
+      - '/dev/stdin'
+    stdin: '{{ lookup("file", virts_xml) }}'
+
+- name: 'Remove temporary machine definitions'
+  connection: 'local'
+  file:
+    state: 'absent'
+    path: '/tmp/{{ inventory_hostname }}.xml'
+
+- name: 'Remove temporary dhcpcd files'
+  connection: 'local'
+  loop: '{{ virts_make_dhcpcd_configs }}'
+  file:
+    state: 'absent'
+    path: '/tmp/{{ inventory_hostname }}-{{ item | basename }}'
+...
+# vim: set filetype=yaml

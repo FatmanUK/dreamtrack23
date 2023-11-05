@@ -1,0 +1,10 @@
+---
+- name: 'Assertion'
+  delegate_to: 'localhost'
+  assert:
+    that:
+      - 'ldap_reader_password is defined'
+    fail_msg: 'No Ansible Vault loaded.'
+    success_msg: 'Ansible Vault loaded ok.'
+...
+# vim: set filetype=yaml
