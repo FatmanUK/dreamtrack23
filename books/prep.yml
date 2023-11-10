@@ -1,5 +1,8 @@
 ---
-- import_playbook: 'check_ansible_version.yml'
+- name: 'Ansible checks'
+  tags:
+    - 'always'
+  import_playbook: 'ansible_checks.yml'
 
 - name: 'Prepare cluster'
   hosts: 'control'

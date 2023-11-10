@@ -5,6 +5,7 @@ all:
     hypervisor_host: 'localhost'
     virtual_cpus: 1
     fqdn: '{{ inventory_hostname }}.{{ domain }}'
+    ansible_user: 'ansible'
 
 # backend_fourth_octet: Used with netmask to calculate the IP address.
 # A bit odd but DRY.

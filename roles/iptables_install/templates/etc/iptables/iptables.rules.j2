@@ -1,0 +1,43 @@
+# {{ ansible_managed }}
+*nat
+:PREROUTING ACCEPT [0:0]
+:INPUT ACCEPT [0:0]
+:OUTPUT ACCEPT [0:0]
+:POSTROUTING ACCEPT [0:0]
+COMMIT
+
+*raw
+:PREROUTING ACCEPT [0:0]
+:OUTPUT ACCEPT [0:0]
+COMMIT
+
+*mangle
+:PREROUTING ACCEPT [0:0]
+:INPUT ACCEPT [0:0]
+:FORWARD ACCEPT [0:0]
+:OUTPUT ACCEPT [0:0]
+:POSTROUTING ACCEPT [0:0]
+COMMIT
+
+*filter
+:INPUT DROP [0:0]
+:FORWARD ACCEPT [0:0]
+:OUTPUT ACCEPT [0:0]
+# Allow all traffic to lo
+-A INPUT -j ACCEPT -i lo
+# Reject (not drop) 127/8 traffic not on lo
+-A INPUT -j REJECT -i lo -d 127.0.0.0/8 --reject-with icmp-port-unreachable
+# Allow returning connections
+-A INPUT -j ACCEPT -p tcp -i eth0 -m state --state RELATED,ESTABLISHED
+-A INPUT -j ACCEPT -p udp -i eth0 -m state --state RELATED,ESTABLISHED
+# Allow ICMP pings
+-A INPUT -j ACCEPT -p icmp -m icmp --icmp-type 0
+-A INPUT -j ACCEPT -p icmp -m icmp --icmp-type 8
+# Drop anything destined for port 0
+-A INPUT -j DROP -p tcp --dport 0
+-A INPUT -j DROP -p udp --dport 0
+# Open SSH and SNMP
+-A INPUT -j ACCEPT -p tcp -i eth0  -s 0.0.0.0/0 -d 0.0.0.0/0 --dport 22
+-A INPUT -j ACCEPT -p udp -i eth0  -s 0.0.0.0/0 -d 0.0.0.0/0 --dport 161
+# Application-specific rules
+COMMIT

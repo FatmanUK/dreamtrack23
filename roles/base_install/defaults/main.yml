@@ -1,0 +1,33 @@
+---
+base_rm_files:
+  - '/run/utmp'
+  - '/etc/ssh/ssh_host_dsa_key'
+  - '/etc/ssh/ssh_host_dsa_key.pub'
+  - '/etc/ssh/ssh_host_ed25519_key'
+  - '/etc/ssh/ssh_host_ed25519_key.pub'
+  - '/etc/ssh/ssh_host_ecdsa_key'
+  - '/etc/ssh/ssh_host_ecdsa_key.pub'
+  - '/etc/ssh/ssh_host_rsa_key'
+  - '/etc/ssh/ssh_host_rsa_key.pub'
+  - '/tmp/.ICE-unix'
+  - '/tmp/.X11-unix'
+  - '/root/.bash_history'
+  - '/home/ansible/.bash_history'
+  - '/var/log/btmp'
+  - '/var/log/dmesg.log'
+  - '/var/log/messages'
+  - '/var/log/secure'
+  - '/var/log/wtmp'
+  - '/etc/xbps.d/00-repository-main.conf.bak'
+
+base_templates:
+  # machine-id could be used as a host-based random seed, for ex.
+  - path: '/etc/machine-id'
+    mode: '0444'
+  - path: '/etc/hostname'
+  - path: '/etc/sudoers'
+    mode: '0440'
+  - path: '/etc/sudoers.d/wizards'
+    mode: '0440'
+...
+# vim: set filetype=yaml

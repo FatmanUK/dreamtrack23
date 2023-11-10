@@ -2,6 +2,8 @@
 - name: 'List shutdown guests'
   register: 'pre_boot_status'
   delegate_to: '{{ hypervisor_host }}'
+  vars:
+    ansible_user: '' # revert to non-Ansible user
   virt:
     command: 'list_vms'
     state: 'shutdown'
@@ -10,6 +12,8 @@
 - name: 'Boot shutdown guests'
   when: 'fqdn in pre_boot_status.list_vms'
   delegate_to: '{{ hypervisor_host }}'
+  vars:
+    ansible_user: '' # revert to non-Ansible user
   virt:
     name: '{{ fqdn }}'
     state: 'running'

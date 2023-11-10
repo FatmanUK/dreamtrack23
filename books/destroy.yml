@@ -4,13 +4,14 @@
     - 'always'
   import_playbook: 'ansible_checks.yml'
 
-- name: 'Shutdown tier 1'
-  hosts: 'tier_1'
+- name: 'Destroys cluster'
+  hosts: 'virts_cluster'
   gather_facts: no
   become: no
   handlers:
     - import_tasks: '../handlers/main.yml'
   roles:
-    - 'tier_down'
+    - 'cluster_destroy'
+    - 'bookmarks_destroy'
 ...
 # vim: set filetype=yaml

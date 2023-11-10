@@ -2,6 +2,8 @@
 - name: 'List running guests'
   register: 'pre_shutdown_status'
   delegate_to: '{{ hypervisor_host }}'
+  vars:
+    ansible_user: '' # revert to non-Ansible user
   virt:
     command: 'list_vms'
     state: 'running'
@@ -10,11 +12,15 @@
 - name: 'Shutdown running guests'
   when: 'fqdn in pre_shutdown_status.list_vms'
   delegate_to: '{{ hypervisor_host }}'
+  vars:
+    ansible_user: '' # revert to non-Ansible user
   virt:
     name: '{{ fqdn }}'
     state: 'shutdown'
     uri: 'qemu:///session'
 
+# try "connection: local" and "run_once: yes" instead of delegation to
+# get a better looking task trace?
 - name: 'Pause for hosts to settle'
   when: 'fqdn in pre_shutdown_status.list_vms'
   delegate_to: '{{ hypervisor_host }}'

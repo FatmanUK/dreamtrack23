@@ -1,5 +1,8 @@
 ---
-- import_playbook: 'check_ansible_version.yml'
+- name: 'Check Ansible version'
+  tags:
+    - 'always'
+  import_playbook: 'ansible_checks.yml'
 
 - name: 'Boot tier 1'
   hosts: 'tier_1'

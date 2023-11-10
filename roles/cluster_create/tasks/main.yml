@@ -65,6 +65,13 @@
     mode: '0600'
     validate: '/usr/bin/virt-xml-validate %s'
 
+# Defining a VM and making is autostart with host. VM will be off after this task
+# Maybe use this instead?
+#- name: Define vm from xml and set autostart
+#  community.libvirt.virt:
+#    command: define
+#    xml: "{{ lookup('template', 'vm_template.xml.j2') }}"
+#    autostart: true
 # become: no puts these in user session
 - name: 'Define remote virts'
   register: 'rg_define_virts'

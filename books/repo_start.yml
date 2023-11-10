@@ -1,13 +1,8 @@
 ---
-- name: 'Check Ansible version'
+- name: 'Ansible checks'
   tags:
     - 'always'
-  import_playbook: 'check_ansible_version.yml'
-
-- name: 'Check Ansible Vault is loaded'
-  tags:
-    - 'always'
-  import_playbook: 'check_vault_loaded.yml'
+  import_playbook: 'ansible_checks.yml'
 
 - name: 'Start repo server'
   hosts: 'control'
