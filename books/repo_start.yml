@@ -1,0 +1,20 @@
+---
+- name: 'Ansible checks'
+  tags:
+    - 'always'
+  import_playbook: 'ansible_checks.yml'
+
+- name: 'Start repo server'
+  hosts: 'control'
+  gather_facts: no
+  connection: 'local'
+  run_once: yes
+  handlers:
+    - import_tasks: '../handlers/main.yml'
+  tags:
+    - 'always'
+  roles:
+    - 'repo_stop'
+    - 'repo_start'
+...
+# vim: set filetype=yaml

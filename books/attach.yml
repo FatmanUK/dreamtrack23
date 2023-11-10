@@ -1,0 +1,29 @@
+---
+- name: 'Ansible checks'
+  tags:
+    - 'always'
+  import_playbook: 'ansible_checks.yml'
+
+#- name: 'Attach extra disks'
+#  hosts: 'physical'
+#  gather_facts: no
+#  become: yes
+#  vars:
+#    ansible_user: 'ansible'
+#  handlers:
+#    - import_tasks: '../handlers/main.yml'
+#  roles:
+#    - 'data_disks_attach'
+
+#- name: 'Mount data disks'
+#  hosts: 'all:!physical:!control'
+#  gather_facts: no
+#  become: yes
+#  vars:
+#    ansible_user: 'ansible'
+#  handlers:
+#    - import_tasks: '../handlers/main.yml'
+#  roles:
+#    - 'data_disks_mount'
+...
+# vim: set filetype=yaml

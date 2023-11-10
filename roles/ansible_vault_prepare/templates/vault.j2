@@ -1,0 +1,6 @@
+---
+{% for item in passwords %}
+{{ item.name }}_password: "{{ lookup('password', '/dev/null ' ~ item.generator) }}"
+{% endfor %}
+...
+# vim: set filetype=yaml

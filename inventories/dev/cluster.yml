@@ -1,0 +1,62 @@
+---
+all:
+  vars:
+    domain: 'dreamtrack.test'
+    hypervisor_host: 'localhost'
+    virtual_cpus: 1
+    fqdn: '{{ inventory_hostname }}.{{ domain }}'
+    ansible_user: 'ansible'
+
+# backend_fourth_octet: Used with netmask to calculate the IP address.
+# A bit odd but DRY.
+control:
+  vars:
+    netmask: '127.0.0.0/8'
+  hosts:
+    localhost:
+      backend_fourth_octet: '1'
+
+hosts_physical:
+  children:
+    control:
+
+tier_1:
+  children:
+    auth:
+    data:
+    logs:
+
+virts_cluster:
+  children:
+    tier_1:
+
+auth:
+  vars:
+    netmask: '10.1.1.0/24'
+    vm_ram: '2097152'
+  hosts:
+    home-auth-001:
+      backend_fourth_octet: '1'
+    home-auth-002:
+      backend_fourth_octet: '2'
+
+data:
+  vars:
+    netmask: '10.1.2.0/24'
+  hosts:
+    home-db-001:
+      backend_fourth_octet: '1'
+    home-db-002:
+      backend_fourth_octet: '2'
+
+logs:
+  vars:
+    netmask: '10.1.3.0/24'
+    vm_ram: '8388608'
+  hosts:
+    home-log-001:
+      backend_fourth_octet: '1'
+    home-log-002:
+      backend_fourth_octet: '2'
+...
+# vim: set filetype=yaml

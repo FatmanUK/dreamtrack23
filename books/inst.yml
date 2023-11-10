@@ -1,0 +1,92 @@
+---
+- name: 'Ansible checks'
+  tags:
+    - 'always'
+  import_playbook: 'ansible_checks.yml'
+
+- name: 'Start repo server'
+  hosts: 'control'
+  gather_facts: no
+  connection: 'local'
+  run_once: yes
+  handlers:
+    - import_tasks: '../handlers/main.yml'
+  tags:
+    - 'always'
+  roles:
+    - 'repo_stop'
+    - 'repo_start'
+
+- name: 'Cluster base install'
+  hosts: 'virts_cluster'
+  gather_facts: yes
+  handlers:
+    - import_tasks: '../handlers/main.yml'
+  roles:
+    # - 'xbps_prepare'
+    - 'iptables_install'
+    # - 'node_exporter_install'
+    - 'base_install'
+    # - 'borg_install'
+
+#- name: 'Set up time and name services'
+#  hosts: 'auth'
+#  gather_facts: no
+#  handlers:
+#    - import_tasks: '../handlers/main.yml'
+#  roles:
+#    - 'unbound_install'
+#    - 'chrony_install'
+#    - 'certificate_authority_generate'
+
+#- name: 'Set up database services'
+#  hosts: 'data'
+#  gather_facts: no
+#  handlers:
+#    - import_tasks: '../handlers/main.yml'
+#  roles:
+#    - 'postgresql_install'
+#    # - 'pgweb_install' # do later
+
+#- name: 'Track certificates'
+#  hosts: 'auth:data'
+#  gather_facts: no
+#  handlers:
+#    - import_tasks: '../handlers/main.yml'
+#  roles:
+#    - 'certificate_track'
+
+#- name: 'Set up Kerberos and LDAP services'
+#  hosts: 'auth'
+#  gather_facts: no
+#  handlers:
+#    - import_tasks: '../handlers/main.yml'
+#  roles:
+#    # All meta dependencies for a play are resolved at once, not
+#    # per-role, so we have to separate them if there are similar meta
+#    # deps. This will tend to create one-role plays.
+#    - 'kerberos_install'
+#    - 'openldap_install'
+#    - 'certificate_track'
+
+#- name: 'Enrol everyhost in Kerberos realm'
+#  hosts: 'virts_cluster'
+#  gather_facts: no
+#  handlers:
+#    - import_tasks: '../handlers/main.yml'
+#  roles:
+#    - 'kerberos_enrol'
+
+#- name: 'Set up logging service'
+#  hosts: 'logs'
+#  gather_facts: no
+#  handlers:
+#    - import_tasks: '../handlers/main.yml'
+#  roles:
+#    - 'rsyslog_install'
+#    - 'elasticsearch_install'
+#    - 'elasticsearch_configure'
+#    - 'kibana_install'
+#    - 'certificate_track'
+...
+# vim: set filetype=yaml

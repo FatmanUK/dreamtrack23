@@ -1,0 +1,119 @@
+---
+- name: 'Check directories exist'
+  loop:
+    - '{{ repository_root }}'
+    - '{{ xbps_static_cache_path }}'
+    - '{{ xbps_static_data_path }}/{{ xbps_static_repodir }}'
+  file:
+    path: '{{ item }}'
+    state: 'directory'
+
+- name: 'Unpack static xbps'
+  unarchive:
+    src: '../annex/{{ xbps_static_package }}'
+    dest: '{{ repository_root }}'
+
+# TODO: add changed_when / failed_when
+- name: 'Download packages'
+  register: 'xbps_prepare_download'
+  when: 'download_enabled'
+  until: 'xbps_prepare_download is not failed'  # poor workaround, but why does this fail? standard wisdom is "flaky network", but I don't buy that for a second
+  retries: 300
+  environment:
+    XBPS_TARGET_ARCH: '{{ xbps_static_arch }}'
+    XBPS_ARCH: '{{ xbps_static_arch }}'
+  vars:
+    cmd_argv:
+      - '{{ xbps_static_binary_path }}/xbps-install.static'
+      - '-SyDR'
+      - '{{ xbps_static_repository }}'
+      - '-r'
+      - '{{ repository_root }}'
+  command:
+    argv: '{{ cmd_argv + xbps_package_download }}'
+
+- name: 'Delete repository indexes'
+  vars:
+    repodata_dir: '{{ xbps_static_data_path }}/{{ xbps_static_repodir }}'
+  loop:
+    - '{{ repodata_dir }}/{{ xbps_static_arch }}-repodata'
+    - '{{ xbps_static_cache_path }}/{{ xbps_static_arch }}-repodata'
+  file:
+    state: 'absent'
+    path: '{{ item }}'
+
+# there isn't a loop replacement for with_fileglob --- see docs
+# we need to delete the old sigs to create a new repo
+- name: 'Delete old signatures'
+  with_fileglob: '{{ xbps_static_cache_path }}/*.sig'
+  file:
+    state: 'absent'
+    path: '{{ item }}'
+
+- name: 'Copy in custom packages'
+  loop: '{{ xbps_static_custom_packages }}'
+  copy:
+    src: '../../custom-packages/{{ item }}.{{ xbps_static_arch }}.xbps'
+    dest: '{{ xbps_static_cache_path }}/{{ item }}.{{ xbps_static_arch }}.xbps'
+    mode: '0644'
+
+- name: 'Enumerate downloaded packages'
+  with_fileglob: '{{ xbps_static_cache_path }}/*.xbps'
+  set_fact:
+    downloads: '{{ (downloads | default([])) + [item] }}'
+
+- name: 'Create new index'
+  when: 'downloads is defined'
+  vars:
+    cmd_argv:
+      - '{{ xbps_static_binary_path }}/xbps-rindex.static'
+      - '-a'
+  failed_when: '"index: failed to read props.plist metadata" in rindex.stderr'
+  register: 'rindex'
+  command:
+    argv: '{{ cmd_argv +  downloads }}'
+
+- name: 'Sign the index'
+  when: 'downloads is defined'
+  command:
+    argv:
+      - '{{ xbps_static_binary_path }}/xbps-rindex.static'
+      - '--sign'
+      - '--signedby'
+      - '{{ xbps_static_byline }}'
+      - '--privkey'
+      - '{{ xbps_static_pem_path }}/{{ xbps_static_pem_key }}'
+      - '{{ xbps_static_cache_path }}'
+
+- name: 'Sign the packages'
+  when: 'downloads is defined'
+  vars:
+    cmd_argv:
+      - '{{ xbps_static_binary_path }}/xbps-rindex.static'
+      - '--sign-pkg'
+      - '--privkey'
+      - '{{ xbps_static_pem_path }}/{{ xbps_static_pem_key }}'
+      # failed_when: '"index: failed to read props.plist metadata"
+      # in rindex-sign.stderr'
+      # register: 'rindex-sign'
+  command:
+    argv: '{{ cmd_argv +  downloads }}'
+
+- name: 'Check hex key'
+  when: 'downloads is defined'
+  register: 'hexkey'
+  command:
+    argv:
+      - '{{ xbps_static_binary_path }}/xbps-query.static'
+      - '--repository={{ xbps_static_cache_path }}'
+      - '-vL'
+
+# need to erase keys in key dir? var/db/xbps/keys --- they don't seem
+# to be ones I've generated? (byline: Void Linux)
+
+- name: 'Show hex key'
+  when: 'hexkey.stdout is defined'
+  debug:
+    var: 'hexkey.stdout'
+...
+# vim: set filetype=yaml

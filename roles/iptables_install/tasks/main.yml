@@ -1,0 +1,21 @@
+---
+- name: 'Enable service'
+  become: yes
+  notify: 'Restart sshd'
+  runit:
+    name: 'iptables'
+    enabled: yes
+
+- name: 'Install default iptables rules'
+  become: yes
+  loop:
+    - path: '/etc/iptables/iptables.rules'
+  notify: 'Reload iptables'
+  template:
+    src: '{{ item.path[1:] }}.j2'
+    dest: '{{ item.path }}'
+    mode: '{{ item.mode | default("0644") }}'
+    owner: '{{ item.owner | default("root") }}'
+    group: '{{ item.group | default("root") }}'
+...
+# vim: set filetype=yaml

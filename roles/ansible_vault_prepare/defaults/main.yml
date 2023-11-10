@@ -1,0 +1,4 @@
+---
+ansible_vault_dir: 'vaults'
+...
+# vim: set filetype=yaml

@@ -1,0 +1,16 @@
+---
+- name: 'Ansible checks'
+  tags:
+    - 'always'
+  import_playbook: 'ansible_checks.yml'
+
+#- name: 'Sanitise cluster'
+#  hosts: 'control:!localhost'
+#  become: yes
+#  gather_facts: no
+#  handlers:
+#    - import_tasks: '../handlers/main.yml'
+#  roles:
+#    - 'controller_sanitise'
+...
+# vim: set filetype=yaml
