@@ -8,5 +8,7 @@ vm_make_dhcpcd_no_route:
 
 boot_post_delay: 5
 shutdown_post_delay: 5
+
+sudo_root_group: 'wheel'
 ...
 # vim: set filetype=yaml
