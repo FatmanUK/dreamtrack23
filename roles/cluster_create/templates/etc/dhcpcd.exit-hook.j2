@@ -1,0 +1,7 @@
+# {{ ansible_managed }}
+{% for N in hostvars | json_query('*.ansible_host_prefix') | sort | ipv4('network/prefix') | unique %}
+{%   if N not in vm_make_dhcpcd_no_route %}
+ip route add {{ N }} via {{ N | ipaddr(254) | ipaddr('address') }}
+{%   endif %}
+{% endfor %}
+

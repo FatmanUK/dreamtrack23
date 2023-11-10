@@ -1,0 +1,25 @@
+---
+- name: 'Show Ansible version'
+  delegate_to: 'localhost'
+  debug:
+    msg: 'Detected Ansible version {{ ansible_version.full }}'
+
+- name: 'Assert Ansible version minimum'
+  when: 'ansible_version_min is defined'
+  delegate_to: 'localhost'
+  assert:
+    that:
+      - 'ansible_version.full is version_compare(ansible_version_min, "ge")'
+    fail_msg: >-
+      Requires Ansible version {{ ansible_version_min }} minimum, found {{ ansible_version.full }}.
+
+- name: 'Assert Ansible version maximum'
+  delegate_to: 'localhost'
+  when: 'ansible_version_max is defined'
+  assert:
+    that:
+      - 'ansible_version.full is version_compare(ansible_version_max, "le")'
+    fail_msg: >-
+      Requires Ansible version {{ ansible_version_max }} maximum, found {{ ansible_version.full }}.
+...
+# vim: set filetype=yaml

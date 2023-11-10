@@ -1,0 +1,17 @@
+---
+- name: 'Ansible checks'
+  tags:
+    - 'always'
+  import_playbook: 'ansible_checks.yml'
+
+- name: 'Destroys cluster'
+  hosts: 'virts_cluster'
+  gather_facts: no
+  become: no
+  handlers:
+    - import_tasks: '../handlers/main.yml'
+  roles:
+    - 'cluster_destroy'
+    - 'bookmarks_destroy'
+...
+# vim: set filetype=yaml

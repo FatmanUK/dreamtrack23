@@ -1,0 +1,14 @@
+---
+- name: 'Run xbps-repo-server'
+  register: 'server'
+  script:
+    executable: '/usr/bin/python3'
+    cmd: 'xbps-repo-server.py {{ repository_port }}'
+
+- name: 'Write pid file'
+  copy:
+    content: '{{ server.stdout_lines | first }}'
+    dest: '{{ repository_file }}'
+    mode: '0600'
+...
+# vim: set filetype=yaml

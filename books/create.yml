@@ -1,0 +1,26 @@
+---
+- name: 'Ansible checks'
+  tags:
+    - 'always'
+  import_playbook: 'ansible_checks.yml'
+
+# Move disks to control host and update libguestfs
+- name: 'Prepare physical'
+  hosts: 'hosts_physical'
+  gather_facts: no
+  become: yes
+  handlers:
+    - import_tasks: '../handlers/main.yml'
+  roles:
+    - 'physicals_prepare'
+
+- name: 'Make cluster'
+  hosts: 'virts_cluster'
+  gather_facts: no
+  become: no
+  handlers:
+    - import_tasks: '../handlers/main.yml'
+  roles:
+    - 'cluster_create'
+...
+# vim: set filetype=yaml

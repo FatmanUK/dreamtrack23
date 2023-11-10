@@ -1,0 +1,19 @@
+---
+- name: 'Ansible checks'
+  tags:
+    - 'always'
+  import_playbook: 'ansible_checks.yml'
+
+- name: 'Prepare cluster'
+  hosts: 'control'
+  connection: 'local'
+  run_once: yes
+  gather_facts: no
+  handlers:
+    - import_tasks: '../handlers/main.yml'
+  roles:
+    # tagged 'never' because it can do some damage
+    - { name: 'ansible_vault_prepare', tags: [ 'ansible_vault', 'never' ] }
+    - { name: 'repo_prepare',          tags: [ 'repository' ] }
+...
+# vim: set filetype=yaml

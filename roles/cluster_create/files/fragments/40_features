@@ -1,0 +1,5 @@
+  <features>
+    <acpi/>
+    <apic/>
+    <vmport state='off'/>
+  </features>

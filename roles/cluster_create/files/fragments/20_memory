@@ -1,0 +1,2 @@
+  <memory unit='KiB'>{{ vm_ram | default(4194304) }}</memory>
+  <currentMemory unit='KiB'>{{ vm_ram | default(4194304) }}</currentMemory>

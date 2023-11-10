@@ -1,0 +1,30 @@
+---
+# A lot of these could be done in the base image.
+- name: 'Delete a lot of unneeded files'
+  become: yes
+  loop: '{{ base_rm_files }}'
+  file:
+    path: '{{ item }}'
+    state: 'absent'
+
+- name: 'Templating in some configurations'
+  notify: 'Restart sshd'
+  become: yes
+  loop: '{{ base_templates }}'
+  template:
+    src: '{{ item.path[1:] }}.j2'
+    dest: '{{ item.path }}'
+    mode: '{{ item.mode | default("0644") }}'
+    owner: '{{ item.owner | default("root") }}'
+    group: '{{ item.group | default("root") }}'
+
+- name: 'Set random seed'
+  notify: 'Restart sshd'
+  become: yes
+  community.general.filesize:
+    path: '/var/lib/random-seed'
+    size: '{{ "4 KB" | human_to_bytes }}'
+    source: '/dev/urandom'
+
+...
+# vim: set filetype=yaml

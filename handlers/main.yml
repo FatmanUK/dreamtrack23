@@ -1,0 +1,107 @@
+---
+- name: 'Restart agetty-tty1'
+  become: yes
+  service:
+    name: 'agetty-tty1'
+    state: 'restarted'
+
+- name: 'Restart chronyd'
+  become: yes
+  service:
+    name: 'chronyd'
+    state: 'restarted'
+
+- name: 'Restart dbus'
+  become: yes
+  service:
+    name: 'dbus'
+    state: 'restarted'
+
+- name: 'Restart dhcpcd'
+  become: yes
+  service:
+    name: 'dhcpcd'
+    state: 'restarted'
+
+- name: 'Reload iptables'
+  register: 'iptables_reload_handler_result'
+  changed_when:
+    - 'iptables_reload_handler_result.rc is defined'
+    - 'iptables_reload_handler_result.rc == 0'
+  failed_when:
+    - 'iptables_reload_handler_result.rc is defined'
+    - 'iptables_reload_handler_result.rc > 0'
+  become: yes
+  command:
+    argv:
+      - '/sbin/iptables-restore'
+      - '/etc/iptables/iptables.rules'
+
+- name: 'Restart kadmind'
+  become: yes
+  service:
+    name: 'kadmind'
+    state: 'restarted'
+
+- name: 'Restart keepalived'
+  become: yes
+  service:
+    name: 'keepalived'
+    state: 'restarted'
+
+- name: 'Restart kpropd'
+  become: yes
+  service:
+    name: 'kpropd'
+    state: 'restarted'
+
+- name: 'Restart krb5kdc'
+  become: yes
+  service:
+    name: 'krb5kdc'
+    state: 'restarted'
+
+- name: 'Restart openldap'
+  become: yes
+  service:
+    name: 'slapd'
+    state: 'restarted'
+
+- name: 'Restart rsyslogd'
+  become: yes
+  service:
+    name: 'rsyslogd'
+    state: 'restarted'
+
+- name: 'Restart snmpd'
+  become: yes
+  service:
+    name: 'snmpd'
+    state: 'restarted'
+
+- name: 'Restart sshd'
+  become: yes
+  service:
+    name: 'sshd'
+    state: 'restarted'
+
+- name: 'Restart sssd'
+  become: yes
+  service:
+    name: 'sssd'
+    state: 'restarted'
+
+- name: 'Reload sysctl'
+  become: yes
+  command:
+    argv:
+      - '/bin/sysctl'
+      - '-p'
+
+- name: 'Restart unbound'
+  become: yes
+  service:
+    name: 'unbound'
+    state: 'restarted'
+...
+# vim: set filetype=yaml

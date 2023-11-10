@@ -1,0 +1,6 @@
+---
+all:
+  vars:
+    env: 'dev'
+...
+# vim: set filetype=yaml
