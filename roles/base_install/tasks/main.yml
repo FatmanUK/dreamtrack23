@@ -25,6 +25,5 @@
     path: '/var/lib/random-seed'
     size: '{{ "4 KB" | human_to_bytes }}'
     source: '/dev/urandom'
-
 ...
 # vim: set filetype=yaml

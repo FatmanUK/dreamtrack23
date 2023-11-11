@@ -1,0 +1,6 @@
+---
+host_templates:
+  - path: '/etc/qemu/bridge.conf'
+    mode: '0644'
+...
+# vim: set filetype=yaml
