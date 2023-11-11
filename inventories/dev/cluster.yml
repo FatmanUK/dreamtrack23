@@ -20,12 +20,6 @@ hosts_physical:
   children:
     control:
 
-tier_1:
-  children:
-    auth:
-    data:
-    logs:
-
 virts_cluster:
   children:
     tier_1:

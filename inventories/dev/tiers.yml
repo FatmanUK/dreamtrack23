@@ -1,0 +1,8 @@
+---
+tier_1:
+  children:
+    auth:
+    data:
+    logs:
+...
+# vim: set filetype=yaml
