@@ -36,6 +36,8 @@ def playbook(action, env, wants_vault=True, hosts='all'):
     wants_root = False
     if action == 'create':
         wants_root = True
+    if action == 'inst':
+        wants_root = True
     DIR_SCRIPT=scriptdir()
     HOSTS=env_hosts(env, hosts)
     PLAYBOOK=env_playbook(DIR_SCRIPT, action)

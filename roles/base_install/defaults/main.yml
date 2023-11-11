@@ -29,5 +29,7 @@ base_templates:
     mode: '0440'
   - path: '/etc/sudoers.d/wizards'
     mode: '0440'
+  - path: '/etc/sudoers.d/ansible'
+    mode: '0440'
 ...
 # vim: set filetype=yaml

@@ -20,6 +20,7 @@
 - name: 'Cluster base install'
   hosts: 'virts_cluster'
   gather_facts: yes
+  force_handlers: yes # makes handlers run even when role fails
   handlers:
     - import_tasks: '../handlers/main.yml'
   roles:

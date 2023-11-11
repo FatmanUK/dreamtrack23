@@ -1,5 +1,7 @@
 ---
 - name: 'Ansible checks'
+  vars:
+    disable_vault_check: yes
   tags:
     - 'always'
   import_playbook: 'ansible_checks.yml'

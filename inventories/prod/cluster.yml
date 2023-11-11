@@ -1,0 +1,91 @@
+---
+all:
+  vars:
+    domain: 'dreamtrack.net'
+    virtual_cpus: 1
+    fqdn: '{{ inventory_hostname }}.{{ domain }}'
+    ansible_user: 'ansible'
+
+# backend_fourth_octet: Used with netmask to calculate the IP address.
+# A bit odd but DRY.
+control:
+  vars:
+    netmask: '127.0.0.0/8'
+  hosts:
+    localhost:
+      backend_fourth_octet: '1'
+
+hosts_physical:
+  vars:
+    netmask: '10.7.6.0/24'
+  hosts:
+    # Gamma is dead and won't turn on. It is the oldest.
+    # gamma:
+    #   backend_fourth_octet: '211'
+    helm:
+      backend_fourth_octet: '212'
+    # Johnson is up and refusing all connections. Can be fixed.
+    # johnson:
+    #   backend_fourth_octet: '213'
+    vlissides:
+      backend_fourth_octet: '214'
+    # There is also a dead host at 215 which might make a good Foreman host.
+
+virts_cluster:
+  children:
+    tier_1:
+
+auth:
+  vars:
+    netmask: '10.2.1.0/24'
+    vm_ram: '2097152'
+  hosts:
+    live-auth-001:
+      backend_fourth_octet: '1'
+      hypervisor_host: 'helm'
+    live-auth-002:
+      backend_fourth_octet: '2'
+      hypervisor_host: 'vlissides'
+    # live-auth-003:
+    #   backend_fourth_octet: '3'
+    #   hypervisor_host: 'johnson'
+    # live-auth-004:
+    #   backend_fourth_octet: '4'
+    #   hypervisor_host: 'gamma'
+
+data:
+  vars:
+    netmask: '10.2.2.0/24'
+  hosts:
+    live-db-001:
+      backend_fourth_octet: '1'
+      hypervisor_host: 'helm'
+    live-db-002:
+      backend_fourth_octet: '2'
+      hypervisor_host: 'vlissides'
+    # live-db-003:
+    #   backend_fourth_octet: '3'
+    #   hypervisor_host: 'johnson'
+    # live-db-004:
+    #   backend_fourth_octet: '4'
+    #   hypervisor_host: 'gamma'
+
+logs:
+  vars:
+    netmask: '10.2.3.0/24'
+    vm_ram: '8388608'
+  hosts:
+    live-log-001:
+      backend_fourth_octet: '1'
+      hypervisor_host: 'helm'
+    live-log-002:
+      backend_fourth_octet: '2'
+      hypervisor_host: 'vlissides'
+    # live-log-003:
+    #   backend_fourth_octet: '3'
+    #   hypervisor_host: 'johnson'
+    # live-log-004:
+    #   backend_fourth_octet: '4'
+    #   hypervisor_host: 'gamma'
+...
+# vim: set filetype=yaml

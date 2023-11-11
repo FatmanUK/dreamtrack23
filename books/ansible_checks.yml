@@ -12,7 +12,9 @@
     # pinned at 2.10.17 so we can still use cron module on /etc/crontab
     # ansible_version_max: '2.10.17'
   roles:
-    - 'ansible_version_check'
-    - 'ansible_vault_check'
+    - name: 'ansible_version_check'
+      when: 'disable_version_check is not defined'
+    - name: 'ansible_vault_check'
+      when: 'disable_vault_check is not defined'
 ...
 # vim: set filetype=yaml

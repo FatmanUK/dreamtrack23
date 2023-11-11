@@ -65,6 +65,14 @@
     mode: '0600'
     validate: '/usr/bin/virt-xml-validate %s'
 
+- name: 'Copy templates into hosts'
+  when:
+    - 'environment != "dev"'
+  delegate_to: '{{ hypervisor_host }}'
+  copy:
+    src: '/tmp/{{ inventory_hostname }}.xml'
+    dest: '/tmp/{{ inventory_hostname }}.xml'
+
 # Defining a VM and making is autostart with host. VM will be off after this task
 # Maybe use this instead?
 #- name: Define vm from xml and set autostart
@@ -89,16 +97,19 @@
     argv:
       - '/usr/bin/virsh'
       - 'define'
-      - '/dev/stdin'
-    stdin: '{{ lookup("file", virts_xml) }}'
+      # - '/dev/stdin'
+      - '{{ virts_xml }}'
+    # stdin: '{{ lookup("file", virts_xml) }}'
 
 - name: 'Remove temporary machine definitions'
+  when: 'environment == "dev"'
   connection: 'local'
   file:
     state: 'absent'
     path: '/tmp/{{ inventory_hostname }}.xml'
 
 - name: 'Remove temporary dhcpcd files'
+  when: 'environment == "dev"'
   connection: 'local'
   loop: '{{ virts_make_dhcpcd_configs }}'
   file:
