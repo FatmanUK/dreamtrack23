@@ -36,8 +36,8 @@
   handlers:
     - import_tasks: '../handlers/main.yml'
   roles:
-    - 'unbound_install'
     - 'do_nothing'
+    - 'unbound_install'
     - 'chrony_install'
 #    - 'certificate_authority_generate'
 
