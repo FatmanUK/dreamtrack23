@@ -1,0 +1,37 @@
+---
+# Add an iptables ACCEPT rule. Add live, 'cos the reload doesn't
+# always work.
+# TODO: don't need iptables_rules.ip?
+# TODO: fix source port?
+- name: 'Add iptables rule in config'
+  become: yes
+  vars:
+    rule_parts:
+      - '-A INPUT -j ACCEPT'
+      - '-i {{ item.interface | default("eth0") }}'
+      - '-p {{ item.proto | default("tcp") }}'
+      - '-s {{ item.source_address | default("0.0.0.0/0") }}'
+      # - '--sport {{ item.source_port | default("?") }}'
+      - '-d {{ item.destination_address }}'
+      - '--dport {{ item.destination_port }}'
+  loop: '{{ iptables_rules }}'
+  lineinfile:
+    path: '/etc/iptables/iptables.rules'
+    line: '{{ rule_parts | join(" ") }}'
+    # insertafter: '*filter' :(
+    insertbefore: 'COMMIT'
+
+- name: 'Add iptables rule'
+  become: yes
+  loop: '{{ iptables_rules }}'
+  iptables:
+    chain: 'INPUT'
+    jump: 'ACCEPT'
+    in_interface: '{{ item.interface | default("eth0") }}'
+    protocol: '{{ item.proto | default("tcp") }}'
+    source: '{{ item.source_address | default("0.0.0.0/0") }}'
+    # source_port: '{{ item.source_port | default("?") }}'
+    destination: '{{ item.destination_address }}'
+    destination_port: '{{ item.destination_port }}'
+...
+# vim: set filetype=yaml

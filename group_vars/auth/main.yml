@@ -1,0 +1,6 @@
+---
+public_time_servers:
+  - 'pool.ntp.org'
+  - 'time.nist.gov'
+...
+# vim: set filetype=yaml

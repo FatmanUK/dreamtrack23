@@ -1,0 +1,13 @@
+---
+lookups_str: '{% for x in hosts_lookup -%}
+{%-   set y = lookup("dig", x).split(",") -%}
+{%-   if y != "" -%}
+{%-     for z in y -%}
+{{-       "" if z == "NXDOMAIN" else ("," ~ z ~ ":" ~ x) -}}
+{%-     endfor -%}
+{%-   endif -%}
+{%- endfor %}'
+
+lookups_array: '{{ lookups_str[1:] | split(",") }}'
+...
+# vim: set filetype=yaml

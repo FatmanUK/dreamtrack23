@@ -1,0 +1,7 @@
+---
+- name: 'Do nothing'
+  assert:
+    that:
+      - '1 == 1'
+...
+# vim: set filetype=yaml

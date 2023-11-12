@@ -1,0 +1,10 @@
+---
+- name: 'Enable service'
+  become: yes
+  notify: '{{ services_notifies | default([]) }}'
+  loop: '{{ services | default([]) }}'
+  runit:
+    name: '{{ item }}'
+    enabled: yes
+...
+# vim: set filetype=yaml

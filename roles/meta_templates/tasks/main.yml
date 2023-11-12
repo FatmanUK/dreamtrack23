@@ -1,0 +1,15 @@
+---
+- name: 'Apply templates'
+  become: yes
+  notify: '{{ templates_notifies | default([]) }}'
+  vars:
+    owner: '{{ item.owner | default("root") }}'
+  loop: '{{ templates | default([]) }}'
+  template:
+    src: '../roles/{{ templates_role }}/templates/{{ item.path[1:] }}.j2'
+    dest: '{{ item.path }}'
+    mode: '{{ item.mode | default("0644") }}'
+    owner: '{{ owner }}'
+    group: '{{ item.group | default(owner) }}'
+...
+# vim: set filetype=yaml

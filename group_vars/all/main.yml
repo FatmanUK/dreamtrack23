@@ -8,5 +8,8 @@ realm: '{{ domain | upper }}'
 virts_user: 'libvirt'
 virts_base_image: 'virt-sysprep.qcow2'
 virts_image_dest: '/var/lib/libvirt/images'
+
+admin_user:
+  email: 'admin@dreamtrack.net'
 ...
 # vim: set filetype=yaml

@@ -1,0 +1,4 @@
+---
+current_xbps_repository: 'https://repo-fastly.voidlinux.org/current'
+...
+# vim: set filetype=yaml
