@@ -1,0 +1,10 @@
+---
+# DNS service add
+#  - vars:
+#      dns_group: 'auth'
+#      dns_extra:
+#        srv:
+#          - name: '_ntp._udp'
+#            port: '123'
+...
+# vim: set filetype=yaml

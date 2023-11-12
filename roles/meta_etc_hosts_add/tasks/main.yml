@@ -1,0 +1,22 @@
+---
+- name: 'Insert DNS A records in hosts file'
+  when: 'testmode is not defined'
+  become: yes
+  vars:
+    arr: '{{ item.split(":") }}'
+  loop: '{{ lookups_array }}'
+  lineinfile:
+    path: '/etc/hosts'
+    line: '{{ arr[0] }}		{{ arr[1] }}'
+
+- name: 'Debug: output DNS A records'
+  when: 'testmode is defined and testmode'
+  vars:
+    arr: '{{ item.split(":") }}'
+  loop: '{{ lookups_array }}'
+  debug:
+    msg: '{{ arr[0] }}		{{ arr[1] }}'
+
+# TODO: test each line and remove nonresponsive entries?
+...
+# vim: set filetype=yaml

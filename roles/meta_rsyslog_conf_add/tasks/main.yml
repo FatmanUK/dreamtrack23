@@ -1,0 +1,59 @@
+---
+# Decided not to add this in meta_templates because it's always the
+# same and fairly basic.
+- name: 'Configure rsyslog for service'
+  become: yes
+  loop: '{{ rsyslog_names }}'
+  template:
+    src: 'rsyslog.j2'
+    dest: '/etc/rsyslog.d/{{ item }}.conf'
+    mode: '0644'
+    owner: 'root'
+    group: 'root'
+
+- name: 'Add logrotete configs directory'
+  become: yes
+  file:
+    state: 'directory'
+    path: '/etc/logrotate.d'
+    mode: '0755'
+    owner: 'root'
+    group: 'root'
+
+- name: 'Configure logrotate for service'
+  become: yes
+  loop: '{{ rsyslog_names }}'
+  template:
+    src: 'logrotate.j2'
+    dest: '/etc/logrotate.d/{{ item }}.conf'
+    mode: '0644'
+    owner: 'root'
+    group: 'root'
+
+- name: 'Add logger directory'
+  become: yes
+  loop: '{{ rsyslog_names }}'
+  file:
+    state: 'directory'
+    path: '/etc/sv/{{ item }}/log'
+    mode: '0755'
+    owner: 'root'
+    group: 'root'
+
+- name: 'Add service logger'
+  become: yes
+  loop: '{{ rsyslog_names }}'
+  template:
+    src: 'logrun.j2'
+    dest: '/etc/sv/{{ item }}/log/run'
+    mode: '0755'
+    owner: 'root'
+    group: 'root'
+
+- name: 'Restart rsyslogd'
+  become: yes
+  service:
+    name: 'rsyslogd'
+    state: 'restarted'
+...
+# vim: set filetype=yaml

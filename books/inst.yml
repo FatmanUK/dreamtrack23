@@ -19,7 +19,7 @@
 
 - name: 'Cluster base install'
   hosts: 'virts_cluster'
-  gather_facts: yes
+  gather_facts: no
   force_handlers: yes # makes handlers run even when role fails
   handlers:
     - import_tasks: '../handlers/main.yml'
@@ -30,14 +30,15 @@
     - 'base_install'
     # - 'borg_install'
 
-#- name: 'Set up time and name services'
-#  hosts: 'auth'
-#  gather_facts: no
-#  handlers:
-#    - import_tasks: '../handlers/main.yml'
-#  roles:
-#    - 'unbound_install'
-#    - 'chrony_install'
+- name: 'Set up time and name services'
+  hosts: 'auth'
+  gather_facts: no
+  handlers:
+    - import_tasks: '../handlers/main.yml'
+  roles:
+    - 'unbound_install'
+    - 'do_nothing'
+    - 'chrony_install'
 #    - 'certificate_authority_generate'
 
 #- name: 'Set up database services'

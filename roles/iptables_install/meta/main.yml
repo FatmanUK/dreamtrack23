@@ -1,0 +1,18 @@
+---
+dependencies:
+  - vars:
+      templates:
+        - path: '/etc/iptables/iptables.rules'
+      templates_role: 'iptables_install'
+      templates_notifies:
+        - 'Reload iptables'
+    role: 'meta_templates'
+  - vars:
+      services:
+        - 'iptables'
+      services_notifies:
+        - 'Restart sshd'
+        - 'Reload iptables'
+    role: 'meta_enable_services_runit'
+...
+# vim: set filetype=yaml

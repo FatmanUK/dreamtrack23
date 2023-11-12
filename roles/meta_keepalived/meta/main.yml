@@ -1,0 +1,8 @@
+---
+#dependencies:
+#  - vars:
+#      rsyslog_add_service_names:
+#        - 'keepalived'
+#    role: 'rsyslog_add_service'
+...
+# vim: set filetype=yaml

@@ -7,16 +7,16 @@
     path: '{{ item }}'
     state: 'absent'
 
-- name: 'Templating in some configurations'
-  notify: 'Restart sshd'
-  become: yes
-  loop: '{{ base_templates }}'
-  template:
-    src: '{{ item.path[1:] }}.j2'
-    dest: '{{ item.path }}'
-    mode: '{{ item.mode | default("0644") }}'
-    owner: '{{ item.owner | default("root") }}'
-    group: '{{ item.group | default("root") }}'
+#- name: 'Templating in some configurations'
+#  notify: 'Restart sshd'
+#  become: yes
+#  loop: '{{ base_templates }}'
+#  template:
+#    src: '{{ item.path[1:] }}.j2'
+#    dest: '{{ item.path }}'
+#    mode: '{{ item.mode | default("0644") }}'
+#    owner: '{{ item.owner | default("root") }}'
+#    group: '{{ item.group | default("root") }}'
 
 - name: 'Set random seed'
   notify: 'Restart sshd'

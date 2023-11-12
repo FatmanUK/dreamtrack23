@@ -1,0 +1,10 @@
+---
+dependencies:
+  - vars:
+      templates: '{{ host_templates }}'
+      templates_role: 'physicals_sanitise'
+      templates_notifies:
+        - 'Restart sshd'
+    role: 'meta_templates'
+...
+# vim: set filetype=yaml

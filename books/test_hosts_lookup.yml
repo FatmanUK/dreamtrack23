@@ -1,0 +1,14 @@
+---
+- name: 'test DNS lookup role'
+  hosts: 'localhost'
+  vars:
+    testmode: yes
+    hosts_lookup:
+      - 'ubuntu.com'
+      - 'example.com'
+      - 'google.com'
+      - 'kdjgnkdjnkjgbsdkrg'
+  roles:
+    - 'meta_etc_hosts_add'
+...
+# vim: set filetype=yaml
