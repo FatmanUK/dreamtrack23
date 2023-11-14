@@ -30,7 +30,7 @@
   command:
     argv:
       - 'xbps-install'
-      - '-Su'
+      - '-Suy'
       - 'xbps'
 
 - name: 'Install packages'

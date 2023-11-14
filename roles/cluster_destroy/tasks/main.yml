@@ -15,14 +15,14 @@
     state: 'shutdown'
     uri: 'qemu:///session'
 
-# try "connection: local" and "run_once: yes" instead of delegation to
-# get a better looking task trace?
-- name: 'Pause for hosts to settle'
-  when: 'fqdn in pre_shutdown_status.list_vms'
+- name: 'Undefine virts'
   delegate_to: '{{ hypervisor_host }}'
-  loop_control:
-    label: 'Pausing'
-  pause:
-    seconds: '{{ shutdown_post_delay }}'
+  virt:
+    name: '{{ fqdn }}'
+    command: 'undefine'
+    uri: 'qemu:///session'
+    # force: yes
+
+# Don't delete disks. Might be wanted for analysis.
 ...
 # vim: set filetype=yaml

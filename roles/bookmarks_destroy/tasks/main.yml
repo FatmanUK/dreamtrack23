@@ -1,0 +1,9 @@
+---
+#- name: 'Delete local bookmarks file'
+#  connection: 'local'
+#  run_once: yes
+#  file:
+#    path: '../envdata/{{ inventory_dir | basename }}-bmarks.html'
+#    state: 'absent'
+...
+# vim: set filetype=yaml
