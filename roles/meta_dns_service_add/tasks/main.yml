@@ -1,10 +1,80 @@
 ---
-# DNS service add
-#  - vars:
-#      dns_group: 'auth'
-#      dns_extra:
-#        srv:
-#          - name: '_ntp._udp'
-#            port: '123'
+# Add a DNS service into the Unbound configuration.
+- name: 'Add A records'
+  loop: '{{ groups["auth"] | product(groups[dns_group]) | list }}'
+  delegate_to: '{{ item.0 }}'
+  vars:
+    entry: '{{ item.1 }}.{{ domain }}'
+    entry_ip: '{{ hostvars[item.1].ansible_host }}'
+  become: yes
+  lineinfile:
+    path: '{{ dns_config_path }}'
+    line: '    local-data: "{{ entry }}. IN A {{ entry_ip }}"'
+    insertafter: 'EOF'
+
+# TODO combine these two? v-^
+
+- name: 'Add VIP A record'
+  loop: '{{ groups["auth"] }}'
+  delegate_to: '{{ item }}'
+  vars:
+    entry: '{{ dns_group }}-v.{{ domain }}'
+    entry_ip: '{{ hostvars[groups[dns_group][0]].vip }}'
+  become: yes
+  lineinfile:
+    path: '{{ dns_config_path }}'
+    line: '    local-data: "{{ entry }}. IN A {{ entry_ip }}"'
+    insertafter: 'EOF'
+
+# TODO or combine adding an A and a PTR?
+
+- name: 'Add PTR records'
+  loop: '{{ groups["auth"] | product(groups[dns_group]) | list }}'
+  delegate_to: '{{ item.0 }}'
+  vars:
+    entry: '{{ item.1 }}.{{ domain }}'
+    entry_ip: '{{ hostvars[item.1].ansible_host }}'
+  become: yes
+  lineinfile:
+    path: '{{ dns_config_path }}'
+    line: '    local-data-ptr: "{{ entry_ip }} {{ entry }}"'
+    insertafter: 'EOF'
+
+# TODO combine ? etc
+
+- name: 'Add VIP PTR record'
+  vars:
+    entry: '{{ dns_group }}-v.{{ domain }}'
+    entry_ip: '{{ hostvars[groups[dns_group][0]].vip }}'
+  loop: '{{ groups["auth"] }}'
+  delegate_to: '{{ item }}'
+  become: yes
+  lineinfile:
+    path: '{{ dns_config_path }}'
+    line: '    local-data-ptr: "{{ entry_ip }} {{ entry }}"'
+    insertafter: 'EOF'
+
+- name: 'Add SRV records'
+  vars:
+    vname: '{{ dns_group }}-v'
+    entry: '{{ item.1.name }}.{{ domain }}'
+    entry_vip: '{{ item.1.host | default(vname) }}.{{ domain }}'
+    srv_pri: '{{ item.1.priority | default(''0'') }}'
+    srv_weight: '{{ item.1.weight | default(''100'') }}'
+  loop: '{{ groups["auth"] | product(dns_extra.srv) | list }}'
+  delegate_to: '{{ item.0 }}'
+  become: yes
+  lineinfile:
+    path: '{{ dns_config_path }}'
+    line: '    local-data: "{{ entry }}. SRV {{ srv_pri }} {{ srv_weight }} {{ item.1.port }} {{ entry_vip }}"'
+    insertafter: 'EOF'
+
+- name: 'Restart unbound'
+  loop: '{{ groups["auth"] }}'
+  delegate_to: '{{ item }}'
+  become: yes
+  service:
+    name: 'unbound'
+    state: 'restarted'
 ...
 # vim: set filetype=yaml

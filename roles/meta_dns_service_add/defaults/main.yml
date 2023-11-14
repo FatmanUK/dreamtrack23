@@ -1,0 +1,4 @@
+---
+dns_config_path: '/etc/unbound/unbound.conf'
+...
+# vim: set filetype=yaml

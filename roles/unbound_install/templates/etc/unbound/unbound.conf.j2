@@ -1,0 +1,54 @@
+# {{ ansible_managed }}
+server:
+    verbosity: 1
+    use-syslog: yes
+    interface: 0.0.0.0
+    port: {{ dns_port }}
+    do-ip4: yes
+    do-ip6: no
+    do-udp: yes
+    do-tcp: no
+    access-control: {{ unbound_acl_host }} allow
+    root-hints: "{{ dns_root_hints }}"
+    hide-identity: yes
+    hide-version: yes
+    harden-glue: yes
+    harden-dnssec-stripped: yes
+    use-caps-for-id: yes
+    cache-min-ttl: 3600
+    cache-max-ttl: 86400
+    prefetch: yes
+    num-threads: 4
+    msg-cache-slabs: 8
+    rrset-cache-slabs: 8
+    infra-cache-slabs: 8
+    key-cache-slabs: 8
+    rrset-cache-size: 256m
+    msg-cache-size: 128m
+    so-rcvbuf: 1m
+    private-domain: "{{ domain }}"
+    private-address: 10.0.0.0/8
+    unwanted-reply-threshold: 10000
+    do-not-query-localhost: no
+    val-clean-additional: yes
+    interface-automatic: yes
+
+    # Blackhole
+{% for B in dns_blackhole %}
+    local-zone: "{{ B }}." redirect
+    local-data: "{{ B }}. A 127.0.0.1"
+{% endfor %}
+
+    # Static domain
+    local-zone: "{{ domain }}." static
+
+    # Dynamic records
+{% for H in groups["auth"] %}
+    local-data: "{{ H }}.{{ domain }}. IN A {{ hostvars[H].ansible_host }}"
+{% endfor %}
+    local-data: "auth-v.{{ domain }}. IN A {{ vip }}"
+{% for H in groups["auth"] %}
+    local-data-ptr: "{{ hostvars[H].ansible_host }} {{ H }}.{{ domain }}"
+{% endfor %}
+    local-data-ptr: "{{ vip }} auth-v.{{ domain }}"
+    local-data-ptr: "{{ default_gateway }} auth-net"

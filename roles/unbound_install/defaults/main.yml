@@ -1,0 +1,35 @@
+---
+dns_root: 'E06D44B80B8F1D39A95C0B0D7C65D08458E880409BBC683457104237C7F8EC8D'
+dns_root_hints: '/etc/unbound/root.hints'
+dns_port: '53'
+dns_user: '_unbound'
+
+dns_blackhole:
+  - 'doubleclick.net'
+  - 'googlesyndication.com'
+  - 'googleadservices.com'
+  - 'google-analytics.com'
+  - 'ads.youtube.com'
+  - 'adserver.yahoo.com'
+  - 'ask.com'
+
+dns_templates:
+  - path: '/etc/unbound/unbound.conf'
+    owner: '{{ dns_user }}'
+    group: '{{ dns_user }}'
+    mode: '0600'
+  - path: '/etc/unbound/root.hints'
+    owner: '{{ dns_user }}'
+    group: '{{ dns_user }}'
+    mode: '0600'
+  - path: '/etc/unbound/root.key'
+    owner: '{{ dns_user }}'
+    group: '{{ dns_user }}'
+    mode: '0600'
+
+internic_servers:
+  - 'www.internic.net'
+
+unbound_acl_host: '{{ (ansible_host ~ "/16") | ipaddr("network/prefix") }}'
+...
+# vim: set filetype=yaml

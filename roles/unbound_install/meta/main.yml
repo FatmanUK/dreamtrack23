@@ -1,0 +1,47 @@
+---
+dependencies:
+  - vars:
+      packages:
+        - 'unbound'
+      packages_notifies:
+        - 'Restart unbound'
+    role: 'meta_packages_install_xbps'
+  - vars:
+      templates: '{{ dns_templates }}'
+      templates_role: 'unbound_install'
+      templates_notifies:
+        - 'Restart unbound'
+    role: 'meta_templates'
+  - vars:
+      services:
+        - 'unbound'
+      services_notifies:
+        - 'Restart unbound'
+    role: 'meta_enable_services_runit'
+  - vars:
+      ka_name: 'auth'
+      ka_password: '{{ keepalived_auth_password }}'
+    role: 'meta_keepalived'
+  - vars:
+      iptables_rules:
+        - ip: '{{ ansible_host }}'
+          proto: 'udp'
+          destination_address: '{{ netmask }}'
+          destination_port: '{{ dns_port }}'
+    role: 'meta_iptables_add'
+  - vars:
+      hosts_lookup: '{{ internic_servers }}'
+    role: 'meta_etc_hosts_add'
+  - vars:
+      rsyslog_names:
+        - 'unbound'
+    role: 'meta_rsyslog_conf_add'
+  - vars:
+      dns_group: 'auth'
+      dns_extra:
+        srv:
+          - name: '_dns._udp'
+            port: '{{ dns_port }}'
+    role: 'meta_dns_service_add'
+...
+# vim: set filetype=yaml
