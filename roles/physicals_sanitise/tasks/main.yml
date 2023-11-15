@@ -90,6 +90,14 @@
     user: 'nobody'
     job: '{{ hc_cmd }} {{ hc_url }}/{{ hc_token }}/{{ hc_check }}'
 
+- name: 'Ansible user has correct groups'
+  user:
+    name: 'ansible'
+    groups:
+      - 'kvm'
+      - 'libvirt'
+    append: yes
+
 #/etc/locale.conf:
 #
 #LANG=en_GB.UTF-8
