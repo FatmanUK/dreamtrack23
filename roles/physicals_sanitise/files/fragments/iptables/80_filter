@@ -1,0 +1,51 @@
+*filter
+
+:LIBVIRT_FWI - [0:0]
+-A LIBVIRT_FWI -d 10.2.0.0/16 -o virbr0 -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
+-A LIBVIRT_FWI -d 192.168.100.0/24 -o virbr0 -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
+
+:LIBVIRT_FWO - [0:0]
+-A LIBVIRT_FWO -s 10.2.0.0/16 -i virbr0 -j ACCEPT
+-A LIBVIRT_FWO -s 192.168.100.0/24 -i virbr0 -j ACCEPT
+
+:LIBVIRT_FWX - [0:0]
+-A LIBVIRT_FWX -i virbr0 -o virbr0 -j ACCEPT
+
+:LIBVIRT_INP - [0:0]
+-A LIBVIRT_INP -i virbr0 -p udp -m udp --dport 53 -j ACCEPT
+-A LIBVIRT_INP -i virbr0 -p tcp -m tcp --dport 53 -j ACCEPT
+-A LIBVIRT_INP -i virbr0 -p udp -m udp --dport 67 -j ACCEPT
+-A LIBVIRT_INP -i virbr0 -p tcp -m tcp --dport 67 -j ACCEPT
+
+:LIBVIRT_OUT - [0:0]
+-A LIBVIRT_OUT -o virbr0 -p udp -m udp --dport 53 -j ACCEPT
+-A LIBVIRT_OUT -o virbr0 -p tcp -m tcp --dport 53 -j ACCEPT
+-A LIBVIRT_OUT -o virbr0 -p udp -m udp --dport 68 -j ACCEPT
+-A LIBVIRT_OUT -o virbr0 -p tcp -m tcp --dport 68 -j ACCEPT
+
+#:INPUT DROP [0:0]
+:INPUT ACCEPT [0:0]
+-A INPUT -j REJECT -p tcp --dport 0
+-A INPUT -j REJECT -p udp --dport 0
+-A INPUT -j ACCEPT -i lo -d 127.0.0.1/8
+-A INPUT -j ACCEPT -p icmp --icmp-type 0
+-A INPUT -j ACCEPT -p icmp --icmp-type 8
+-A INPUT -j ACCEPT -i eth0 -m state --state RELATED,ESTABLISHED
+-A INPUT -j ACCEPT -i eth0 -d {{ ansible_host }}/32 -p tcp --dport 22
+-A INPUT -j ACCEPT -i eth0 -d {{ ansible_host }}/32 -p udp --dport 161
+-A INPUT -j LIBVIRT_INP
+
+:FORWARD ACCEPT [0:0]
+-A FORWARD -j LIBVIRT_FWX
+-A FORWARD -j LIBVIRT_FWI
+-A FORWARD -j LIBVIRT_FWO
+
+:OUTPUT ACCEPT [0:0]
+#:OUTPUT DROP [0:0]
+# Prevent spoofed packets from leaving - it's not hard, every ISP ever!
+-A OUTPUT -s 127.0.0.0/8 -j ACCEPT
+-A OUTPUT -s {{ ansible_host }}/32 -j ACCEPT
+-A OUTPUT -j LIBVIRT_OUT
+
+COMMIT
+

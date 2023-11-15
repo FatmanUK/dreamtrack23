@@ -1,0 +1,18 @@
+---
+- name: 'test async command'
+  hosts: 'localhost'
+  vars:
+    testmode: yes
+    cmd_delay_seconds: 20
+    cmd_bang_path: '/bin/bash'
+    cmd_script:
+      - 'set -euxo pipefail'
+      - 'echo line1'
+      - 'echo line2'
+    cmd_pidfile: '/tmp/testpid'
+  roles:
+    - 'meta_async_command'
+
+# TODO: maybe add some testing? kill the process after 10s say? or not?
+...
+# vim: set filetype=yaml

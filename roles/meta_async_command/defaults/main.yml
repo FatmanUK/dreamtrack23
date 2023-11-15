@@ -1,0 +1,6 @@
+---
+# TODO: Generate random names for these?
+cmd_sleep_script: '/tmp/sleep.sh'
+cmd_postsleep_script: '/tmp/post-sleep-script'
+...
+# vim: set filetype=yaml

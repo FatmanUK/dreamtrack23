@@ -1,13 +1,117 @@
 ---
-#- name: 'Templating in some configurations'
-#  notify: 'Restart sshd'
-#  become: yes
-#  loop: '{{ host_templates }}'
-#  template:
-#    src: '{{ item.path[1:] }}.j2'
-#    dest: '{{ item.path }}'
-#    mode: '{{ item.mode | default("0644") }}'
-#    owner: '{{ item.owner | default("root") }}'
-#    group: '{{ item.group | default("root") }}'
+# We assume the ansible user exists and has a public key in
+# authorized_keys.
+
+- name: 'Assemble iptables.rules.j2'
+  connection: 'local'
+  run_once: yes
+  become: no # must not become, don't have sudo pw for local
+  assemble:
+    remote_src: no
+    src: 'fragments/iptables'
+    dest: '/tmp/iptables.rules.j2'
+    mode: '0600'
+
+- name: 'debug'
+  debug:
+    var: 'virts_on_host'
+
+- name: 'Template out iptables rules'
+  template:
+    src: '/tmp/iptables.rules.j2'
+    dest: '{{ iptables_new }}'
+    mode: '0600'
+    validate: '/usr/bin/iptables-restore --test %s'
+
+- name: 'Back up current iptables configuration'
+  copy:
+    remote_src: yes
+    src: '{{ iptables_ruleset }}'
+    dest: '{{ iptables_known_good }}'
+
+- name: 'Copy new configuration into place'
+  copy:
+    remote_src: yes
+    src: '{{ iptables_new }}'
+    dest: '{{ iptables_ruleset }}'
+
+- name: 'Restart iptables'
+  runit:
+    name: 'iptables'
+    state: 'restarted'
+
+- name: 'Restart sshd'
+  runit:
+    name: 'sshd'
+    state: 'restarted'
+
+- name: 'Wait for connection to come back'
+  wait_for_connection:
+
+- name: 'Kill async process'
+  register: 'rg_kill_async'
+  shell:
+    cmd: '/bin/kill $(/usr/bin/more {{ iptables_check_pidfile }})'
+
+- name: 'Assert process was killed'
+  assert:
+    that:
+      - 'rg_kill_async.rc == 0'
+
+- name: 'Regenerate host key files'
+  loop: '{{ host_rm_files }}'
+  notify: 'Restart sshd'
+  file:
+    path: '{{ item }}'
+    state: 'absent'
+
+- name: 'Set random seed'
+  notify: 'Restart sshd'
+  become: yes
+  community.general.filesize:
+    path: '/var/lib/random-seed'
+    size: '{{ "4 KB" | human_to_bytes }}'
+    source: '/dev/urandom'
+
+- name: 'Set hostname'
+  hostname:
+    name: '{{ fqdn }}'
+    use: 'openbsd' # apparently the best option for Void
+
+- name: 'Set up Healthchecks.io ping'
+  vars:
+    hc_url: 'https://hc-ping.com'
+    hc_token: 'TdsOK3QHWeokOG3S1J24oQ'
+    hc_check: 'internet-connection'
+    hc_cmd: '/usr/bin/curl -fsS -m 10 --retry 5 -o /dev/null'
+  cron_legacy:
+    name: 'Healthchecks.io ping'
+    cron_file: '/etc/crontab'
+    user: 'nobody'
+    job: '{{ hc_cmd }} {{ hc_url }}/{{ hc_token }}/{{ hc_check }}'
+
+#/etc/locale.conf:
+#
+#LANG=en_GB.UTF-8
+#LC_COLLATE=C
+
+#[fatman@void-live ~]$ export LC_ALL="en_GB.UTF-8"
+#
+#[fatman@void-live ~]$ su -
+#Password: 
+#You have new mail.
+#-sh: 3: /etc/profile.d/functions.sh: function: not found
+#-sh: 1: shopt: not found
+#
+
+#[fatman@void-live ~]$ sudo chown -R libvirt:libvirt /var/lib/libvirt/images/
+
+#
+#[ansible@helm ~]$ lsmod | grep kvm
+#kvm_intel             323584  0
+#kvm                   884736  1 kvm_intel
+
+
+
 ...
 # vim: set filetype=yaml
