@@ -4,6 +4,10 @@ ansible_host_prefix: '{{ netmask | ipv4(backend_fourth_octet) }}'
 default_gateway: '{{ netmask | ipv4(254) | ipv4("address") }}'
 vip: '{{ netmask | ipv4(100) | ipv4("address") }}'
 realm: '{{ domain | upper }}'
+fqdn: '{{ inventory_hostname }}.{{ domain }}'
+ansible_user: 'ansible'
+
+virtual_cpus: 1
 
 virts_user: 'libvirt'
 virts_base_image: 'virt-sysprep.qcow2'

@@ -1,10 +1,26 @@
 ---
 dependencies:
   - vars:
+      packages:
+        - 'tmux'
+        - 'libguestfs'
+      packages_notifies: [ ]
+    role: 'meta_packages_install_xbps'
+  - vars:
       templates: '{{ host_templates }}'
       templates_role: 'physicals_sanitise'
       templates_notifies:
+        - 'Restart dhcpcd'
         - 'Restart sshd'
     role: 'meta_templates'
+  - vars:
+      cmd_delay_seconds: '{{ iptables_check_timeout }}'
+      cmd_bang_path: '/bin/bash -euxo pipefail'
+      cmd_script:
+        - 'cp {{ iptables_known_good }} {{ iptables_ruleset }}'
+        - 'sv restart iptables'
+        - 'sv restart sshd'
+      cmd_pidfile: '{{ iptables_check_pidfile }}'
+    role: 'meta_async_command'
 ...
 # vim: set filetype=yaml

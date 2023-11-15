@@ -1,0 +1,32 @@
+---
+# Asynchronously run a script after a delay. This is useful for
+# setting up a failsafe device. For example, it's a good thing to do
+# when messing with iptables rules (see physical_sanitise role).
+# Not using meta_templates, avoid metas in metas where poss.
+- name: 'Template out scripts'
+  loop:
+    - src: 'post-sleep-script.j2'
+      dest: '{{ cmd_postsleep_script }}'
+    - src: 'sleep.sh.j2'
+      dest: '{{ cmd_sleep_script }}'
+  template:
+    src: '{{ item.src }}'
+    dest: '{{ item.dest }}'
+    mode: '0700'
+
+- name: 'Execute sleep script asynchronously'
+  # register: 'rg_async'
+  async: '{{ cmd_delay_seconds * 2 }}' # task should be quicker than the sleep?
+  poll: 0
+  command:
+    argv:
+      - '{{ cmd_sleep_script }}'
+
+# TODO: move rg_async.results_file somewhere known? Pass in results
+# file path?
+#- debug:
+#    var: 'rg_async'
+#
+#- fail:
+...
+# vim: set filetype=yaml

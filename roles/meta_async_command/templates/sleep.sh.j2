@@ -1,0 +1,9 @@
+#!/usr/bin/bash
+set -euxo pipefail
+>{{ cmd_pidfile }} echo $$
+/usr/bin/sleep {{ cmd_delay_seconds }}s
+{{ cmd_postsleep_script }}
+/usr/bin/rm {{ cmd_postsleep_script }}
+/usr/bin/rm {{ cmd_sleep_script }}
+# don't remove pidfile so we can test later
+

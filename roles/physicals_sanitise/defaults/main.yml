@@ -2,5 +2,43 @@
 host_templates:
   - path: '/etc/qemu/bridge.conf'
     mode: '0644'
+  - path: '/etc/machine-id'
+    mode: '0444'
+  - path: '/etc/hostname'
+  - path: '/etc/sudoers'
+    mode: '0440'
+  - path: '/etc/sudoers.d/wizards'
+    mode: '0440'
+  - path: '/etc/sudoers.d/ansible'
+    mode: '0440'
+  - path: '/etc/dhcpcd.conf'
+  - path: '/etc/dhcpcd.exit-hook'
+
+host_rm_files:
+  - '/etc/ssh/ssh_host_dsa_key'
+  - '/etc/ssh/ssh_host_dsa_key.pub'
+  - '/etc/ssh/ssh_host_ed25519_key'
+  - '/etc/ssh/ssh_host_ed25519_key.pub'
+  - '/etc/ssh/ssh_host_ecdsa_key'
+  - '/etc/ssh/ssh_host_ecdsa_key.pub'
+  - '/etc/ssh/ssh_host_rsa_key'
+  - '/etc/ssh/ssh_host_rsa_key.pub'
+
+host_gateway: '10.7.6.254'
+
+host_dns_servers:
+  - '8.8.8.8'
+
+iptables_check_pidfile: '/tmp/iptables-sync.pid'
+iptables_check_timeout: 60
+
+iptables_ruleset: '/etc/iptables/iptables.rules'
+iptables_known_good: '/tmp/iptables.known-good'
+iptables_new: '/tmp/iptables.rules'
+
+virts_on_host: '{{ hostvars | dict2items
+  | selectattr("value.group_names", "contains", "virts_cluster")
+  | selectattr("value.hypervisor_host", "eq", inventory_hostname)
+  | map(attribute="key") }}'
 ...
 # vim: set filetype=yaml

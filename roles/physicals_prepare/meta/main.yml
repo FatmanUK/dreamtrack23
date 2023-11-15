@@ -1,0 +1,9 @@
+---
+dependencies:
+  - vars:
+      hosts_lookup:
+        - 'libguestfs.org'
+        - 'download.libguestfs.org'
+    role: 'meta_etc_hosts_add'
+...
+# vim: set filetype=yaml
