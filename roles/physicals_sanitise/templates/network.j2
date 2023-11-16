@@ -1,0 +1,9 @@
+<network>
+  <name>default</name>
+  <forward mode='nat'/>
+  <bridge name='virbr0' stp='on' delay='0'/>
+{% for third_octet in range(backend_third_octet_low, backend_third_octet_high + 1) %}
+  <ip address='10.{{ second_octet }}.{{ third_octet }}.254' prefix='24'>
+  </ip>
+{% endfor %}
+</network>

@@ -8,6 +8,7 @@ fqdn: '{{ inventory_hostname }}.{{ domain }}'
 ansible_user: 'ansible'
 
 virtual_cpus: 1
+vm_ram: '{{ hostvars[hypervisor_host].default_vm_ram }}'
 
 virts_user: 'libvirt'
 virts_base_image: 'virt-sysprep.qcow2'
@@ -15,5 +16,8 @@ virts_image_dest: '/var/lib/libvirt/images'
 
 admin_user:
   email: 'admin@dreamtrack.net'
+
+backend_third_octet_low: 0
+backend_third_octet_high: 16
 ...
 # vim: set filetype=yaml

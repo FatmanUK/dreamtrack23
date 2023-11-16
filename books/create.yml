@@ -13,6 +13,8 @@
     - import_tasks: '../handlers/main.yml'
   roles:
     - 'physicals_prepare'
+    - 'do_nothing'
+    - 'autoupdate_install'
 
 - name: 'Make cluster'
   hosts: 'virts_cluster'

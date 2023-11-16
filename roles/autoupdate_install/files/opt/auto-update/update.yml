@@ -1,0 +1,47 @@
+---
+# Instead of doing this recursively, we can trigger it once a week and
+# do it all from here --- this isn't a stupid bash script y'know.
+
+# To connect to hosts, we need to generate an update key
+
+# xbps throws a wobbly if we don't do this first
+- name: 'Update xbps package first'
+  hosts: 'localhost:guests'
+  become: yes
+  gather_facts: no
+  tasks:
+    - name: 'Update xbps package'
+      register: 'rg_update_xbps'
+      vars:
+        e_already: "Package 'xbps' is up to date"
+      changed_when:
+        - 'rg_update_xbps.rc == 0'
+        - 'e_already not in rg_update_xbps.stdout'
+      become: yes
+      command:
+        argv:
+          - 'xbps-install'
+          - '-Suy'
+          - 'xbps'
+
+# update guests
+
+# reboot guests if any
+
+# update host
+
+# reboot NOT THE DEV CONTROL HOST!!!
+
+# update etc
+...
+# vim: set filetype=yaml
+
+
+
+
+#On boot, auto-update and reboot again. Do not reboot if nothing updated, or uncaught error.
+#Periodically reboot.
+#Gracefully stop any VMs before reboot.
+#Prevent a virt from auto-updating while its host is auto-updating. Use a lock file which could also be created manually.
+#Do this with Ansible as it's so good for scripting. The physicals can update the guests, then themselves. Not the dev control host, though.
+

@@ -1,9 +1,7 @@
 ---
 dependencies:
   - vars:
-      packages:
-        - 'tmux'
-        - 'libguestfs'
+      packages: '{{ host_packages }}'
       packages_notifies: [ ]
     role: 'meta_packages_install_xbps'
   - vars:

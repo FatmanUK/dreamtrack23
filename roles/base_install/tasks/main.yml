@@ -1,22 +1,11 @@
 ---
-# A lot of these could be done in the base image.
+# This could be done in the base image.
 - name: 'Delete a lot of unneeded files'
   become: yes
   loop: '{{ base_rm_files }}'
   file:
     path: '{{ item }}'
     state: 'absent'
-
-#- name: 'Templating in some configurations'
-#  notify: 'Restart sshd'
-#  become: yes
-#  loop: '{{ base_templates }}'
-#  template:
-#    src: '{{ item.path[1:] }}.j2'
-#    dest: '{{ item.path }}'
-#    mode: '{{ item.mode | default("0644") }}'
-#    owner: '{{ item.owner | default("root") }}'
-#    group: '{{ item.group | default("root") }}'
 
 - name: 'Set random seed'
   notify: 'Restart sshd'
@@ -25,5 +14,18 @@
     path: '/var/lib/random-seed'
     size: '{{ "4 KB" | human_to_bytes }}'
     source: '/dev/urandom'
+
+# TODO - split off base_install_common for shared tasks with physical_sanitise
+
+- name: 'Create UTF-8 locale'
+  command:
+    argv:
+      - '/usr/bin/localedef'
+      - '-f'
+      - 'UTF-8'
+      - '-i'
+      - 'en_GB'
+      - '/usr/lib64/locale/en_GB.UTF-8'
+
 ...
 # vim: set filetype=yaml

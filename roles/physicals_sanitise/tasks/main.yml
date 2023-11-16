@@ -12,9 +12,9 @@
     dest: '/tmp/iptables.rules.j2'
     mode: '0600'
 
-- name: 'debug'
-  debug:
-    var: 'virts_on_host'
+#- name: 'debug'
+#  debug:
+#    var: 'virts_on_host'
 
 - name: 'Template out iptables rules'
   template:
@@ -98,6 +98,57 @@
       - 'libvirt'
     append: yes
 
+- name: 'Template out network definition'
+  template:
+    src: 'network.j2'
+    dest: '/tmp/network-default.xml'
+
+# TODO needs changed_when/failed_when
+- name: 'Remove default virbr0 network interface'
+  notify: 'Restart iptables'
+  loop:
+    - 'destroy'
+    - 'undefine'
+  command:
+    argv:
+      - 'virsh'
+      - 'net-{{ item }}'
+      - 'default'
+
+# TODO needs changed_when/failed_when
+- name: 'Modify default virbr0 network interface'
+  notify: 'Restart iptables'
+  command:
+    argv:
+      - 'virsh'
+      - 'net-define'
+      - '/tmp/network-default.xml'
+      - '--validate'
+
+# TODO needs changed_when/failed_when
+- name: 'Set default virbr0 to autostart'
+  notify: 'Restart iptables'
+  loop:
+    - 'autostart'
+    - 'start'
+  command:
+    argv:
+      - 'virsh'
+      - 'net-{{ item }}'
+      - 'default'
+
+# TODO - split off base_install_common for shared tasks with base_install
+
+- name: 'Create UTF-8 locale'
+  command:
+    argv:
+      - '/usr/bin/localedef'
+      - '-f'
+      - 'UTF-8'
+      - '-i'
+      - 'en_GB'
+      - '/usr/lib64/locale/en_GB.UTF-8'
+
 #/etc/locale.conf:
 #
 #LANG=en_GB.UTF-8
@@ -110,7 +161,6 @@
 #You have new mail.
 #-sh: 3: /etc/profile.d/functions.sh: function: not found
 #-sh: 1: shopt: not found
-#
 
 #[fatman@void-live ~]$ sudo chown -R libvirt:libvirt /var/lib/libvirt/images/
 
@@ -118,8 +168,6 @@
 #[ansible@helm ~]$ lsmod | grep kvm
 #kvm_intel             323584  0
 #kvm                   884736  1 kvm_intel
-
-
 
 ...
 # vim: set filetype=yaml

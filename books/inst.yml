@@ -28,6 +28,8 @@
     - 'iptables_install'
     # - 'node_exporter_install'
     - 'base_install'
+    # - 'do_nothing'
+    # - 'autoupdate_install'
     # - 'borg_install'
 
 - name: 'Set up time and name services'
@@ -36,7 +38,6 @@
   handlers:
     - import_tasks: '../handlers/main.yml'
   roles:
-    - 'do_nothing'
     - 'unbound_install'
     - 'chrony_install'
 #    - 'certificate_authority_generate'

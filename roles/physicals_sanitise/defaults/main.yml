@@ -13,6 +13,8 @@ host_templates:
     mode: '0440'
   - path: '/etc/dhcpcd.conf'
   - path: '/etc/dhcpcd.exit-hook'
+  - path: '/etc/default/locale'
+  - path: '/etc/locale.conf'
 
 host_rm_files:
   - '/etc/ssh/ssh_host_dsa_key'
@@ -23,6 +25,16 @@ host_rm_files:
   - '/etc/ssh/ssh_host_ecdsa_key.pub'
   - '/etc/ssh/ssh_host_rsa_key'
   - '/etc/ssh/ssh_host_rsa_key.pub'
+  - '/var/service/agetty-hvc0'
+  - '/var/service/agetty-hvsi0'
+  - '/var/service/agetty-tty4'
+  - '/var/service/agetty-tty5'
+  - '/var/service/agetty-tty6'
+
+host_packages:
+  - 'tmux'
+  - 'libguestfs'
+  - 'netcat'
 
 host_gateway: '10.7.6.254'
 
@@ -36,9 +48,9 @@ iptables_ruleset: '/etc/iptables/iptables.rules'
 iptables_known_good: '/tmp/iptables.known-good'
 iptables_new: '/tmp/iptables.rules'
 
-virts_on_host: '{{ hostvars | dict2items
-  | selectattr("value.group_names", "contains", "virts_cluster")
-  | selectattr("value.hypervisor_host", "eq", inventory_hostname)
-  | map(attribute="key") }}'
+#virts_on_host: '{{ hostvars | dict2items
+#  | selectattr("value.group_names", "contains", "virts_cluster")
+#  | selectattr("value.hypervisor_host", "eq", inventory_hostname)
+#  | map(attribute="key") }}'
 ...
 # vim: set filetype=yaml

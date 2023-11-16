@@ -39,8 +39,6 @@
       - '-f'
       - '/tmp/{{ inventory_hostname }}-guestfish.txt'
 
-# Copy prepped image
-# Confirmed: works on dev env, needs test on prod
 - name: 'Copy prepared image'
   delegate_to: '{{ hostvars[inventory_hostname].hypervisor_host }}'
   become: yes
@@ -58,33 +56,16 @@
     dest: '/tmp/machine.xml.j2'
 
 - name: 'Template out machine definition'
-  connection: 'local'
+  delegate_to: '{{ hypervisor_host }}'
   template:
     src: '/tmp/machine.xml.j2'
     dest: '/tmp/{{ inventory_hostname }}.xml'
-    mode: '0600'
+    mode: '0444'
     validate: '/usr/bin/virt-xml-validate %s'
 
-- name: 'Copy templates into hosts'
-  when:
-    - 'environment != "dev"'
-  delegate_to: '{{ hypervisor_host }}'
-  copy:
-    src: '/tmp/{{ inventory_hostname }}.xml'
-    dest: '/tmp/{{ inventory_hostname }}.xml'
-
-# Defining a VM and making is autostart with host. VM will be off after this task
-# Maybe use this instead?
-#- name: Define vm from xml and set autostart
-#  community.libvirt.virt:
-#    command: define
-#    xml: "{{ lookup('template', 'vm_template.xml.j2') }}"
-#    autostart: true
-# become: no puts these in user session
 - name: 'Define remote virts'
   register: 'rg_define_virts'
   delegate_to: '{{ hypervisor_host }}'
-  # become: yes
   vars:
     e_already: 'already exists with uuid'
     virts_xml: '/tmp/{{ inventory_hostname }}.xml'
@@ -101,16 +82,27 @@
       - '{{ virts_xml }}'
     # stdin: '{{ lookup("file", virts_xml) }}'
 
+- name: 'Mark host autostarted (but not on dev)'
+  when: 'environment != "dev"'
+  delegate_to: '{{ hypervisor_host }}'
+  command:
+    argv:
+      - '/usr/bin/virsh'
+      - '-c'
+      - 'qemu:///session'
+      - 'autostart'
+      - '{{ fqdn }}'
+
 - name: 'Remove temporary machine definitions'
-  when: 'environment == "dev"'
-  connection: 'local'
+  when: 'env == "dev"'
+  delegate_to: '{{ hypervisor_host }}'
   file:
     state: 'absent'
     path: '/tmp/{{ inventory_hostname }}.xml'
 
 - name: 'Remove temporary dhcpcd files'
-  when: 'environment == "dev"'
-  connection: 'local'
+  when: 'env == "dev"'
+  delegate_to: '{{ hypervisor_host }}'
   loop: '{{ virts_make_dhcpcd_configs }}'
   file:
     state: 'absent'

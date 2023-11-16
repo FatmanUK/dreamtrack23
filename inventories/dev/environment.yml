@@ -2,5 +2,7 @@
 all:
   vars:
     env: 'dev'
+    domain: 'dreamtrack.test'
+    second_octet: '1'
 ...
 # vim: set filetype=yaml

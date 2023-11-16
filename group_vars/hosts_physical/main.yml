@@ -1,4 +1,9 @@
 ---
 sudo_root_group: 'wheel'
+
+guests_on_this_host: '{{ hostvars | dict2items
+  | selectattr("value.group_names", "contains", "virts_cluster")
+  | selectattr("value.hypervisor_host", "eq", inventory_hostname)
+  | map(attribute="key") }}'
 ...
 # vim: set filetype=yaml
