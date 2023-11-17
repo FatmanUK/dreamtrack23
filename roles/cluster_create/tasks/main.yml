@@ -82,16 +82,17 @@
       - '{{ virts_xml }}'
     # stdin: '{{ lookup("file", virts_xml) }}'
 
-- name: 'Mark host autostarted (but not on dev)'
-  when: 'environment != "dev"'
-  delegate_to: '{{ hypervisor_host }}'
-  command:
-    argv:
+- name: 'Mark host autostarted (not on dev)'
+  vars:
+    autostart_command:
       - '/usr/bin/virsh'
       - '-c'
       - 'qemu:///session'
       - 'autostart'
-      - '{{ fqdn }}'
+    autostart_state: '{{ [ "--disable" ] if env == "dev" else [] }}'
+  delegate_to: '{{ hypervisor_host }}'
+  command:
+    argv: '{{ autostart_command + autostart_state + [ fqdn ] }}'
 
 - name: 'Remove temporary machine definitions'
   when: 'env == "dev"'
