@@ -12,6 +12,13 @@ dependencies:
         - 'Restart sshd'
     role: 'meta_templates'
   - vars:
+      services:
+        - 'iptables'
+      services_notifies:
+        - 'Reload iptables'
+        - 'Restart sshd'
+    role: 'meta_enable_services_runit'
+  - vars:
       cmd_delay_seconds: '{{ iptables_check_timeout }}'
       cmd_bang_path: '/bin/bash -euxo pipefail'
       cmd_script:
