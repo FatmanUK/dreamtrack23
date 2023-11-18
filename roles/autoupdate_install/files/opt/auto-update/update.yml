@@ -1,15 +1,30 @@
 ---
 # Instead of doing this recursively, we can trigger it once a week and
-# do it all from here --- this isn't a stupid bash script y'know.
-
-# To connect to hosts, we need to generate an update key
+# do it all from here --- this isn't a stupid old bash script y'know.
 
 # xbps throws a wobbly if we don't do this first
 - name: 'Update xbps package first'
-  hosts: 'localhost:guests'
+  hosts: '{{ "guests" if env=="dev" else "localhost:guests" }}'
   become: yes
   gather_facts: no
   tasks:
+    - name: 'Update repository URL'
+      #become: yes
+      copy:
+        content: |
+          repository=https://repo-fastly.voidlinux.org/current
+        dest: '/usr/share/xbps.d/00-repository-main.conf'
+
+    # TODO: does this belong here?
+    - name: 'Add public resolver'
+      register: 'rg_add_resolver'
+      #become: yes
+      lineinfile:
+        path: '/etc/resolv.conf'
+        line: 'nameserver 8.8.8.8'
+        insertafter: 'search dreamtrack.net'
+        backup: yes  # to restore the file afterwards
+
     - name: 'Update xbps package'
       register: 'rg_update_xbps'
       vars:
@@ -17,31 +32,121 @@
       changed_when:
         - 'rg_update_xbps.rc == 0'
         - 'e_already not in rg_update_xbps.stdout'
-      become: yes
       command:
         argv:
-          - 'xbps-install'
+          - '/usr/bin/xbps-install'
           - '-Suy'
           - 'xbps'
 
-# update guests
+- name: 'Check disk space available' # Harder than it seems.
+  hosts: '{{ "guests" if env=="dev" else "localhost:guests" }}'
+  become: no
+  gather_facts: no
+  vars:
+    need_free_mb: 200
+    # WARNING: xbps-install manpage implies the format might change!
+    awk_prog: 'BEGIN{N=0} $2="update" {N+=$5; N+=$6} END{print N}'
+  tasks:
+    # TODO: needs changed_when and failed_when
+    - name: 'Dry-run update'
+      register: 'rg_update_test'
+      vars:
+        xbps_binary: '/usr/bin/xbps-install'
+      shell: "{{ xbps_binary }} -un | /usr/bin/awk '{{ awk_prog }}'"
 
-# reboot guests if any
+    # TODO: needs changed_when and failed_when
+    - name: 'Get free disk space'
+      register: 'rg_update_free'
+      shell: "/usr/bin/df -mP /usr | /usr/bin/awk '{ print $4 }'"
 
-# update host
+    - name: 'Assert disk available > disk needed'
+      vars:
+        need_bytes: '{{ rg_update_test.stdout }}'
+        disk_need: '{{ ((need_bytes | int) / 1048576) | int }}'
+        disk_avail: '{{ rg_update_free.stdout_lines[1] }}'
+      assert:
+        that:
+          - '(disk_avail | int) > (need_free_mb + (disk_need | int))'
+        fail_msg: 'Insufficient disk space. Free some and try again.'
+        success_msg: 'Plenty of disk space. Continuing.'
 
-# reboot NOT THE DEV CONTROL HOST!!!
+- name: 'Update the guests'
+  vars:
+    update_hosts: 'guests'
+  import_playbook: 'recurse.yml'
 
-# update etc
+- name: 'Update the host'
+  vars:
+    update_hosts: '{{ "localhost" if env != "dev" else "none" }}'
+  import_playbook: 'recurse.yml'
+
+- name: 'Shut down guests gracefully' # set autostart first
+  hosts: 'localhost'
+  become: no
+  gather_facts: no
+  tasks:
+    # TODO: needs changed_when/failed_when
+    - name: 'Set autostart'
+      loop: '{{ groups["guests"] }}'
+      command:
+        argv:
+          - '/usr/bin/virsh'
+          - 'autostart'
+          - '{{ item }}.{{ domain }}'
+
+    # TODO: needs changed_when/failed_when
+    - name: 'Shutdown running guests'
+      loop: '{{ groups["guests"] }}'
+      command:
+        argv:
+          - '/usr/bin/virsh'
+          - 'shutdown'
+          - '{{ item }}.{{ domain }}'
+
+    - name: 'Pause for hosts to settle'
+      loop_control:
+        label: 'Pausing'
+      pause:
+        seconds: '5'
+
+- name: 'Restore original settings'
+  hosts: 'localhost:guests'
+  become: yes
+  gather_facts: no
+  tasks:
+    # Technique only works when source and dest are on the same
+    # partition. Guaranteed to be the case here.
+    - name: 'Restore original resolv.conf file'
+      when: 'rg_add_resolver.changed'
+      file:
+        src: '{{ rg_add_resolver.backup }}'
+        dest: '/etc/resolv.conf'
+
+    - name: 'Remove modified resolv.conf file'
+      when: 'rg_add_resolver.changed'
+      file:
+        path: '{{ rg_add_resolver.backup }}'
+        state: 'absent'
+
+- name: 'Reboot physical host'
+  hosts: 'localhost'
+  become: yes
+  gather_facts: no
+  tasks:
+    - name: 'Reboot physical host'
+      when:
+        - 'env != dev'
+      reboot:
+
+    # TODO: needs changed_when/failed_when
+    - name: 'Start virtual guests'
+      when:
+        - 'env == dev'
+      loop: '{{ groups["guests"] }}'
+      command:
+        argv:
+          - '/usr/bin/virsh'
+          - 'start'
+          - '{{ item }}'
 ...
 # vim: set filetype=yaml
-
-
-
-
-#On boot, auto-update and reboot again. Do not reboot if nothing updated, or uncaught error.
-#Periodically reboot.
-#Gracefully stop any VMs before reboot.
-#Prevent a virt from auto-updating while its host is auto-updating. Use a lock file which could also be created manually.
-#Do this with Ansible as it's so good for scripting. The physicals can update the guests, then themselves. Not the dev control host, though.
-

@@ -5,9 +5,12 @@
     state: 'directory'
 
 - name: 'Install script'
+  loop:
+    - '{{ update_script }}'
+    - '{{ update_recurse_script }}'
   copy:
-    src: '{{ update_script[1:] }}'
-    dest: '{{ update_script }}'
+    src: '{{ item[1:] }}'
+    dest: '{{ item }}'
 
 - name: 'Install config'
   vars:
@@ -28,7 +31,7 @@
     name: '{{ update_cronjob_name }} --- Weekly'
     cron_file: '{{ update_cron_file }}'
     user: '{{ update_user }}'
-    job: '{{ update_cronjob }}'
+    job: '{{ update_cronjob }} -eenv={{ env }}'
     dow: '{{ (backend_fourth_octet | int) % 7 }}' # 0-6
     hour: '5'
     minute: '0'
@@ -55,8 +58,6 @@
     state: 'present'
     key: '{{ rg_pub_key.content | b64decode }}'
     key_options: 'no-port-forwarding,from="{{ hostvars[item].default_gateway }},127.0.0.1"'
-
-#PubkeyAcceptedAlgorithms ssh-rsa,ssh-rsa-cert-v01@openssh.com,rsa-sha2-512
 
 - fail:
 ...
