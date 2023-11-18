@@ -39,5 +39,6 @@ base_templates:
   - path: '/etc/default/locale'
   - path: '/etc/locale.conf'
   - path: '/etc/motd'
+  - path: '/etc/ssh/sshd_config'
 ...
 # vim: set filetype=yaml
