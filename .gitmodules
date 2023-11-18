@@ -3,4 +3,4 @@
 	url = https://github.com/FatmanUK/dreamtrack23.wiki.git
 [submodule "plugins/modules"]
 	path = plugins/modules
-	url = https://github.com/FatmanUK/ansible_modules
+	url = https://github.com/FatmanUK/ansible_modules.git
