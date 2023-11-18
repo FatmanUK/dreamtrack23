@@ -1,7 +1,6 @@
 ---
 all:
   vars:
-    domain: 'dreamtrack.net'
 
 # backend_fourth_octet: Used with netmask to calculate the IP address.
 # A bit odd but DRY.
@@ -21,20 +20,20 @@ hosts_physical:
     #   backend_fourth_octet: '211'
     helm:
       backend_fourth_octet: '212'
+      default_vm_ram: '2097152'
     johnson:
       backend_fourth_octet: '213'
+      default_vm_ram: '2097152'
     vlissides:
       backend_fourth_octet: '214'
-    # There is also a dead host at 215 which might make a good Foreman host.
-
-virts_cluster:
-  children:
-    tier_1:
+      default_vm_ram: '2097152'
+    # sutter:
+    #   backend_fourth_octet: '215'
+    #   default_vm_ram: '4194304'
 
 auth:
   vars:
     netmask: '10.2.1.0/24'
-    vm_ram: '2097152'
   hosts:
     live-auth-001:
       backend_fourth_octet: '1'
@@ -48,6 +47,10 @@ auth:
     # live-auth-004:
     #   backend_fourth_octet: '4'
     #   hypervisor_host: 'gamma'
+    # live-auth-005:
+    #   backend_fourth_octet: '5'
+    #   hypervisor_host: 'sutter'
+    #  vm_ram: '4194304'
 
 data:
   vars:
@@ -65,11 +68,14 @@ data:
     # live-db-004:
     #   backend_fourth_octet: '4'
     #   hypervisor_host: 'gamma'
+    # live-db-005:
+    #   backend_fourth_octet: '5'
+    #   hypervisor_host: 'sutter'
+    #   vm_ram: '4194304'
 
 logs:
   vars:
     netmask: '10.2.3.0/24'
-    vm_ram: '8388608'
   hosts:
     live-log-001:
       backend_fourth_octet: '1'
@@ -83,5 +89,9 @@ logs:
     # live-log-004:
     #   backend_fourth_octet: '4'
     #   hypervisor_host: 'gamma'
+    # live-log-005:
+    #   backend_fourth_octet: '5'
+    #   hypervisor_host: 'sutter'
+    #   vm_ram: '4194304'
 ...
 # vim: set filetype=yaml

@@ -1,0 +1,16 @@
+---
+all:
+  vars:
+    domain: '{{ domain }}'
+  hosts:
+    localhost:
+      ansible_host: '127.0.0.1'
+
+guests:
+  hosts:
+{% for guest in guests_on_this_host %}
+    {{ guest }}:
+      ansible_host: '{{ hostvars[guest].ansible_host }}'
+{% endfor %}
+...
+# vim: set filetype=yaml

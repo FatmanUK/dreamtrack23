@@ -33,11 +33,6 @@ def playbook(action, env, wants_vault=True, hosts='all'):
     print('Action: ' + action)
     if action == 'prep':
         wants_vault = False
-    wants_root = False
-    if action == 'create':
-        wants_root = True
-    #if action == 'inst':
-    #    wants_root = True
     DIR_SCRIPT=scriptdir()
     HOSTS=env_hosts(env, hosts)
     PLAYBOOK=env_playbook(DIR_SCRIPT, action)
@@ -52,8 +47,6 @@ def playbook(action, env, wants_vault=True, hosts='all'):
     args=[]
     args.append(f'--limit={HOSTS}')
     args.append(f'--inventory={ANSIBLE_INVENTORY}')
-    if wants_root:
-        args.append(f'--ask-become-pass')
     if wants_vault:
         args.append(f'-e@{VAULT}')
         args.append(f'--vault-password-file={VAULT_SECRET}')

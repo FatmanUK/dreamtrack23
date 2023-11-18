@@ -1,0 +1,9 @@
+---
+dependencies:
+  - vars:
+      packages:
+        - 'ansible'
+      packages_notifies: [ ]
+    role: 'meta_packages_install_xbps'
+...
+# vim: set filetype=yaml

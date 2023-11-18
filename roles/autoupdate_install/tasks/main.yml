@@ -1,0 +1,64 @@
+---
+- name: 'Create script directory'
+  file:
+    path: '{{ update_script | dirname }}'
+    state: 'directory'
+
+- name: 'Install script'
+  loop:
+    - '{{ update_script }}'
+    - '{{ update_recurse_script }}'
+  copy:
+    src: '{{ item[1:] }}'
+    dest: '{{ item }}'
+
+- name: 'Install config'
+  vars:
+    conf_file: '{{ update_script | dirname }}/ansible.cfg'
+  template:
+    src: '{{ conf_file[1:] }}.j2'
+    dest: '{{ conf_file }}'
+
+- name: 'Install inventory'
+  loop:
+    - '{{ update_script | dirname }}/inventory'
+  template:
+    src: '{{ item[1:] }}.j2'
+    dest: '{{ item }}'
+
+- name: 'Install weekly update cronjob'
+  cron_legacy:
+    name: '{{ update_cronjob_name }} --- Weekly'
+    cron_file: '{{ update_cron_file }}'
+    user: '{{ update_user }}'
+    job: '{{ update_cronjob }} -eenv={{ env }}'
+    dow: '{{ (backend_fourth_octet | int) % 7 }}' # 0-6
+    hour: '5'
+    minute: '0'
+
+- name: 'Create update keys'
+  openssh_keypair:
+    path: '.ssh/id_rsa_update'
+    owner: 'ansible'
+    group: 'ansible'
+
+- name: 'Get public update key'
+  register: 'rg_pub_key'
+  slurp:
+    path: '.ssh/id_rsa_update.pub'
+
+- debug:
+    var: 'rg_pub_key'
+
+- name: 'Authorise public key on guests'
+  delegate_to: '{{ item }}'
+  loop: '{{ guests_on_this_host + [ inventory_hostname] }}'
+  authorized_key:
+    user: 'ansible'
+    state: 'present'
+    key: '{{ rg_pub_key.content | b64decode }}'
+    key_options: 'no-port-forwarding,from="{{ hostvars[item].default_gateway }},127.0.0.1"'
+
+- fail:
+...
+# vim: set filetype=yaml

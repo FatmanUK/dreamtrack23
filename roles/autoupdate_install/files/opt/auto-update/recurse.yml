@@ -1,0 +1,150 @@
+---
+- name: 'Check for known issues and fix them before the update'
+  hosts: '{{ update_hosts }}'
+  become: yes
+  gather_facts: no
+  tasks: [] # hmm, nothing is known about the issues (yet)
+
+- name: 'Run the update'
+  hosts: '{{ update_hosts }}'
+  become: yes
+  gather_facts: no
+  tasks:
+    - name: 'Set incompleteness fact'
+      set_fact:
+        xbps_update_incomplete: yes
+
+    # TODO: needs changed_when/failed_when
+    - name: 'Run the update'
+      register: 'rg_update'
+      become: yes
+      command:
+        argv:
+          - '/usr/bin/xbps-install'
+          - '-uy'
+
+    - name: 'Show the last few lines of output, if any'
+      debug:
+        msg: '{{ rg_update.stdout_lines[:] }}'
+
+    - name: 'Show the last few lines of error, if any'
+      debug:
+        msg: '{{ rg_update.stderr_lines[:] }}'
+
+    - name: 'Decide if update completed'
+      when:
+        - 'rg_update.rc == 0'
+        - 'rg_update.stdout_lines != []'
+        - "(last_line | regex_search(re)) != ''"
+      vars:
+        last_line: '{{ rg_update.stdout_lines | last }}'
+        regex_array:
+          - '\d+ downloaded'
+          - '\d+ installed'
+          - '\d+ updated'
+          - '\d+ configured'
+          - '\d+ removed'
+        re: '{{ regex_array | join(", ") }}.'
+      set_fact:
+        xbps_update_incomplete: no
+
+    - name: 'Decide if update was unneeded'
+      when:
+        - 'rg_update.rc == 0'
+        - 'rg_update.stdout_lines == []'
+      set_fact:
+        xbps_update_incomplete: no
+
+    # TODO: Decide if update was empty and thus didn't run
+    # This would also be incomplete:no situation
+
+    # TODO: needs changed_when/failed_when
+    # Fix TLS issue before return. Don't bother testing, just apply.
+    - name: 'Apply TLS fix'
+      become: yes
+      environment:
+        SSL_NO_VERIFY_PEER: 'true'
+      command:
+        argv:
+          - '/usr/bin/xbps-install'
+          - '-ffy'
+          - 'openssl'
+          - 'ca-certificates'
+
+    - name: 'If complete, return early'
+      when:
+        - 'not xbps_update_incomplete'
+      meta: 'end_play'
+
+    # To get here we must have crashed.
+
+    # TODO: Can it be fixed?
+    # -----------
+    # Add tasks here with "when: xbps_update_incomplete" and other
+    # conditions detected, eg. line = ERROR, add another task set_fact
+    # xbps_update_incomplete = no
+    # -----------
+
+    - name: 'If still crashed, fail'
+      when:
+        - 'xbps_update_incomplete'
+      fail:
+        msg: 'Update crashed and could not be fixed automatically.'
+
+#    # GAH - can't import_playbook within a play!
+#    # Have to call ansible-playbook recurse.yml -eupdate_hosts etc
+#    #   manually, I suppose?
+#    # if crashed and fixed (only possibility remaining), recurse
+#    - name: 'If fixed, recurse'
+#      vars:
+#        update_hosts: '{{ update_hosts }}'
+#      import_playbook: 'recurse.yml'
+    - name: 'Recurse'
+      command:
+        argv:
+          - '/sbin/ansible-playbook'
+          - '-e'
+          - 'env={{ env }}'
+          - '-u'
+          - 'update_hosts={{ update_hosts }}'
+          - '-i'
+          - '/opt/auto-update/inventory'
+          - '/opt/auto-update/recurse.yml'
+          - '--private-key=/home/ansible/.ssh/id_rsa_update'
+      environment:
+        ANSIBLE_CONFIG: '/opt/auto-update/ansible.cfg'
+
+    - fail:
+
+#ERROR: open-iscsi-2.1.9_3: [unpack] failed to unpack files from archive: Directory not empty
+#sudo rm -r /usr/lib/python3.12/site-packages/pycparser/ply
+
+#[unpack] failed to extract file `./usr/lib/python3.12/site-packages/pycparser/ply': Directory not empty
+
+
+#[root@vlissides ~]# xbps-install -Suy xbps
+#...
+#[root@vlissides ~]# xbps-install -Suy
+#...
+#tzdata-2023c_1: collecting files...
+#tzdata-2022a_1: collecting files...
+#ERROR: tzdata-2023c_1: directory `./usr/share/zoneinfo/posix/Canada' can not be deleted.
+#Transaction failed! see above for errors.
+#...
+#[root@vlissides ~]# rm -r /usr/share/zoneinfo/posix/Canada
+#[root@vlissides ~]# SSL_NO_VERIFY_PEER=true xbps-install -Suy
+#...
+#open-iscsi-2.1.6_1: updating to 2.1.9_3 ...
+#open-iscsi-2.1.9_3: unpacking ...
+#open-iscsi-2.1.9_3: removed obsolete entry: ./usr/lib/libopeniscsiusr.so
+#ERROR: open-iscsi-2.1.9_3: [unpack] failed to extract file `./etc/sv/iscsid/supervise': Directory not empty
+#ERROR: open-iscsi-2.1.9_3: [unpack] failed to extract files: Directory not empty
+#ERROR: open-iscsi-2.1.9_3: [unpack] failed to unpack files from archive: Directory not empty
+#...
+#[root@vlissides ~]# rm -r /etc/sv/iscsid/supervise
+#[root@vlissides ~]# SSL_NO_VERIFY_PEER=true xbps-install -Suy
+#...
+#0 downloaded, 32 installed, 359 updated, 391 configured, 7 removed.
+
+...
+# vim: set filetype=yaml

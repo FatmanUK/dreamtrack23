@@ -1,4 +1,43 @@
 ---
+# TODO: consider for a chrony-hwclock-sync module?
+# Or maybe separate chrony and hwclock modules?
+- name: 'Wait for chronyd to synchronise with an upstream server'
+  register: 'rg_wait_sync'
+  vars:
+    s_match: '^Stratum'
+    s_value: '0'
+    lines: '{{ rg_wait_sync.stdout_lines }}'
+    line: "{{ lines | select('match', s_match) | first }}"
+  retries: 60
+  delay: 1
+  until:
+    - "(line.split(' ') | last) != s_value"
+  command:
+    argv:
+      - '/usr/bin/chronyc'
+      - 'tracking'
 
+#- name: 'Debug'
+#  vars:
+#    s_match: '^Stratum'
+#    s_value: '0'
+#    lines: '{{ rg_wait_sync.stdout_lines }}'
+#    line: "{{ lines | select('match', s_match) | first }}"
+#  debug:
+#    msg: "{{ line.split(' ') | last }}"
+
+# TODO: needs changed_when/failed_when
+- name: 'Step system clock'
+  command:
+    argv:
+      - '/usr/bin/chronyc'
+      - 'makestep'
+
+# TODO: needs changed_when/failed_when
+- name: 'Sync hardware clock'
+  command:
+    argv:
+      - '/usr/bin/hwclock'
+      - '--systohc'
 ...
 # vim: set filetype=yaml

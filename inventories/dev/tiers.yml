@@ -1,4 +1,8 @@
 ---
+virts_cluster:
+  children:
+    tier_1:
+
 tier_1:
   children:
     auth:

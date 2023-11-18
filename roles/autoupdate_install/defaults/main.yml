@@ -1,0 +1,10 @@
+---
+update_user: 'ansible'
+update_script: '/opt/auto-update/update.yml'
+update_recurse_script: '/opt/auto-update/recurse.yml'
+update_inventory: '/opt/auto-update/inventory'
+update_cronjob: 'ANSIBLE_CONFIG=/opt/auto-update/ansible.cfg /usr/bin/ansible-playbook -i {{ update_inventory }} {{ update_script }} --private-key=/home/{{ update_user }}/.ssh/id_rsa_update'
+update_cronjob_name: 'Auto-update'
+update_cron_file: '/etc/crontab'
+...
+# vim: set filetype=yaml

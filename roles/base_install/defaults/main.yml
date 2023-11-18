@@ -19,6 +19,11 @@ base_rm_files:
   - '/var/log/secure'
   - '/var/log/wtmp'
   - '/etc/xbps.d/00-repository-main.conf.bak'
+  - '/var/service/agetty-hvc0'
+  - '/var/service/agetty-hvsi0'
+  - '/var/service/agetty-tty4'
+  - '/var/service/agetty-tty5'
+  - '/var/service/agetty-tty6'
 
 base_templates:
   # machine-id could be used as a host-based random seed, for ex.
@@ -31,5 +36,9 @@ base_templates:
     mode: '0440'
   - path: '/etc/sudoers.d/ansible'
     mode: '0440'
+  - path: '/etc/default/locale'
+  - path: '/etc/locale.conf'
+  - path: '/etc/motd'
+  - path: '/etc/ssh/sshd_config'
 ...
 # vim: set filetype=yaml

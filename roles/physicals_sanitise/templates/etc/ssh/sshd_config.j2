@@ -1,0 +1,14 @@
+Include /etc/ssh/sshd_config.d/*.conf
+
+PubkeyAuthentication yes
+PubkeyAcceptedAlgorithms ssh-rsa,ssh-rsa-cert-v01@openssh.com,rsa-sha2-512
+AuthorizedKeysFile .ssh/authorized_keys
+
+KbdInteractiveAuthentication no
+
+PermitRootLogin no
+UsePAM yes
+UseDNS no
+PrintMotd yes
+
+Subsystem       sftp    /usr/libexec/sftp-server
