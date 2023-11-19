@@ -1,0 +1,44 @@
+---
+# ansible-playbook test/move_test.yml -i inventories/dev
+- name: 'Test move'
+  hosts: 'localhost'
+  gather_facts: no
+  become: no
+  handlers:
+    - import_tasks: '../handlers/main.yml'
+  tasks:
+    # This should fail because we didn't insist
+    - name: 'Test move 1'
+      register: 'move_test_1'
+      failed_when:
+        - 'move_test_1.rc == 0'
+      move:
+        src: 'move/file1'
+        dest: 'move/file2'
+
+    - name: 'Debug'
+      debug:
+        var: 'move_test_1'
+
+    # This should succeed
+    - name: 'Test move 2'
+      register: 'move_test_2'
+      # changed_when:
+      #   - ''
+      failed_when:
+        - 'move_test_2.rc != 0'
+      move:
+        src: 'move/file1'
+        dest: 'move/file2'
+        force: yes
+
+    - name: 'Debug'
+      debug:
+        var: 'move_test_2'
+
+    - name: 'Reset test'
+      copy:
+        src: 'move/file2'
+        dest: 'move/file1'
+...
+# vim: set filetype=yaml
