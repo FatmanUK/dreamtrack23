@@ -7,18 +7,12 @@
     dest: '/tmp/{{ inventory_hostname }}-{{ item | basename }}'
     mode: '0600'
 
-# To make this variablisableible, create on control host and transfer
-# to hypervisor host, even if that's less efficient.
-# TODO: add changed_when / failed_when
 - name: 'Create virt overlay image'
   connection: 'local'
-  vars:
-    command: '/usr/bin/qemu-img create'
-    formats: '-fqcow2 -Fqcow2'
-    embed_cmd: 'readlink -f ../annex/{{ virts_base_image }}'
-    base_disk: '-obacking_file=$({{ embed_cmd }})'
+  qcow2:
+    follow_symlinks: yes
+    base_disk: '../annex/{{ virts_base_image }}'
     new_disk: '/tmp/{{ inventory_hostname }}.qcow2'
-  shell: '{{ command }} {{ formats }} {{ base_disk }} {{ new_disk }}'
 
 - name: 'Write out guestfish scripts'
   connection: 'local'
@@ -30,14 +24,10 @@
     src: 'guestfish.j2'
     dest: '/tmp/{{ inventory_hostname }}-guestfish.txt'
 
-# TODO: changed_when/failed_when
 - name: 'Inject SSH and network settings'
   connection: 'local'
-  command:
-    argv:
-      - '/bin/guestfish'
-      - '-f'
-      - '/tmp/{{ inventory_hostname }}-guestfish.txt'
+  guestfish:
+    script: '/tmp/{{ inventory_hostname }}-guestfish.txt'
 
 - name: 'Copy prepared image'
   delegate_to: '{{ hostvars[inventory_hostname].hypervisor_host }}'
@@ -74,25 +64,16 @@
   failed_when:
     - 'rg_define_virts.rc != 0'
     - 'e_already not in rg_define_virts.stderr'
-  command:
-    argv:
-      - '/usr/bin/virsh'
-      - 'define'
-      # - '/dev/stdin'
-      - '{{ virts_xml }}'
-    # stdin: '{{ lookup("file", virts_xml) }}'
+  virsh_uncommon:
+    mode: 'xml_define'
+    file: '{{ virts_xml }}'
 
 - name: 'Mark host autostarted (not on dev)'
-  vars:
-    autostart_command:
-      - '/usr/bin/virsh'
-      - '-c'
-      - 'qemu:///session'
-      - 'autostart'
-    autostart_state: '{{ [ "--disable" ] if env == "dev" else [] }}'
   delegate_to: '{{ hypervisor_host }}'
-  command:
-    argv: '{{ autostart_command + autostart_state + [ fqdn ] }}'
+  virsh_uncommon:
+    mode: 'autostart'
+    disabled: '{{ env == "dev" }}'
+    domain: '{{ fqdn }}'
 
 - name: 'Remove temporary machine definitions'
   when: 'env == "dev"'

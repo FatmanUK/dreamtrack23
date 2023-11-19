@@ -50,8 +50,8 @@
 
 - name: 'Kill async process'
   register: 'rg_kill_async'
-  shell:
-    cmd: '/bin/kill $(/usr/bin/more {{ iptables_check_pidfile }})'
+  kill_pidfile:
+    path: '{{ iptables_check_pidfile }}'
 
 - name: 'Assert process was killed'
   assert:
@@ -109,21 +109,17 @@
   loop:
     - 'destroy'
     - 'undefine'
-  command:
-    argv:
-      - 'virsh'
-      - 'net-{{ item }}'
-      - 'default'
+  virsh_uncommon:
+    mode: 'net_{{ item }}'
+    name: 'default'
 
 # TODO needs changed_when/failed_when
 - name: 'Modify default virbr0 network interface'
   notify: 'Restart iptables'
-  command:
-    argv:
-      - 'virsh'
-      - 'net-define'
-      - '/tmp/network-default.xml'
-      - '--validate'
+  virsh_uncommon:
+    mode: 'net_define'
+    path: '/tmp/network-default.xml'
+    validate: yes
 
 # TODO needs changed_when/failed_when
 - name: 'Set default virbr0 to autostart'
@@ -131,23 +127,17 @@
   loop:
     - 'autostart'
     - 'start'
-  command:
-    argv:
-      - 'virsh'
-      - 'net-{{ item }}'
-      - 'default'
+  virsh_uncommon:
+    mode: 'net_{{ item }}'
+    name: 'default'
 
 # TODO - split off base_install_common for shared tasks with base_install
 
 - name: 'Create UTF-8 locale'
-  command:
-    argv:
-      - '/usr/bin/localedef'
-      - '-f'
-      - 'UTF-8'
-      - '-i'
-      - 'en_GB'
-      - '/usr/lib64/locale/en_GB.UTF-8'
+  localedef:
+    charmap: 'UTF-8'
+    locale: 'en_GB'  # aka input
+    path: '/usr/lib64/locale/en_GB.UTF-8'  # aka outputpath
 
 #/etc/locale.conf:
 #

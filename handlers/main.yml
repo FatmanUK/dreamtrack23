@@ -24,18 +24,8 @@
     state: 'restarted'
 
 - name: 'Reload iptables'
-  register: 'iptables_reload_handler_result'
-  changed_when:
-    - 'iptables_reload_handler_result.rc is defined'
-    - 'iptables_reload_handler_result.rc == 0'
-  failed_when:
-    - 'iptables_reload_handler_result.rc is defined'
-    - 'iptables_reload_handler_result.rc > 0'
   become: yes
-  command:
-    argv:
-      - '/sbin/iptables-restore'
-      - '/etc/iptables/iptables.rules'
+  iptables_restore:
 
 - name: 'Restart kadmind'
   become: yes
@@ -93,10 +83,7 @@
 
 - name: 'Reload sysctl'
   become: yes
-  command:
-    argv:
-      - '/bin/sysctl'
-      - '-p'
+  sysctl_reload:
 
 - name: 'Restart unbound'
   become: yes

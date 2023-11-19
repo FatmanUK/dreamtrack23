@@ -13,24 +13,19 @@
     src: '../annex/{{ xbps_static_package }}'
     dest: '{{ repository_root }}'
 
-# TODO: add changed_when / failed_when
 - name: 'Download packages'
   register: 'xbps_prepare_download'
   when: 'download_enabled'
   until: 'xbps_prepare_download is not failed'  # poor workaround, but why does this fail? standard wisdom is "flaky network", but I don't buy that for a second
   retries: 300
-  environment:
-    XBPS_TARGET_ARCH: '{{ xbps_static_arch }}'
-    XBPS_ARCH: '{{ xbps_static_arch }}'
-  vars:
-    cmd_argv:
-      - '{{ xbps_static_binary_path }}/xbps-install.static'
-      - '-SyDR'
+  xbps_uncommon:
+    binary_path: '{{ xbps_static_binary_path }}'
+    arch: '{{ xbps_static_arch }}'
+    packages: '{{ xbps_package_download }}'
+    download_only: yes
+    remote_repository:
       - '{{ xbps_static_repository }}'
-      - '-r'
-      - '{{ repository_root }}'
-  command:
-    argv: '{{ cmd_argv + xbps_package_download }}'
+    root_dir: '{{ repository_root }}'
 
 - name: 'Delete repository indexes'
   vars:
@@ -62,51 +57,31 @@
   set_fact:
     downloads: '{{ (downloads | default([])) + [item] }}'
 
-- name: 'Create new index'
-  when: 'downloads is defined'
-  vars:
-    cmd_argv:
-      - '{{ xbps_static_binary_path }}/xbps-rindex.static'
-      - '-a'
-  failed_when: '"index: failed to read props.plist metadata" in rindex.stderr'
+- name: 'Build a new package index'
   register: 'rindex'
-  command:
-    argv: '{{ cmd_argv +  downloads }}'
-
-- name: 'Sign the index'
-  when: 'downloads is defined'
-  command:
-    argv:
-      - '{{ xbps_static_binary_path }}/xbps-rindex.static'
-      - '--sign'
-      - '--signedby'
-      - '{{ xbps_static_byline }}'
-      - '--privkey'
-      - '{{ xbps_static_pem_path }}/{{ xbps_static_pem_key }}'
-      - '{{ xbps_static_cache_path }}'
-
-- name: 'Sign the packages'
   when: 'downloads is defined'
   vars:
-    cmd_argv:
-      - '{{ xbps_static_binary_path }}/xbps-rindex.static'
-      - '--sign-pkg'
-      - '--privkey'
-      - '{{ xbps_static_pem_path }}/{{ xbps_static_pem_key }}'
-      # failed_when: '"index: failed to read props.plist metadata"
-      # in rindex-sign.stderr'
-      # register: 'rindex-sign'
-  command:
-    argv: '{{ cmd_argv +  downloads }}'
+    e_read_metadata: 'index: failed to read props.plist metadata'
+  failed_when:
+    - 'e_read_metadata in rindex.stderr'
+  xbps_uncommon:
+    binary_path: '{{ xbps_static_binary_path }}'
+    arch: '{{ xbps_static_arch }}'
+    packages: '{{ downloads }}'
+    create_new_index: yes
+    #root_dir: '{{ repository_root }}'
+    cache_path: '{{ xbps_static_cache_path }}'
+    signed_by: '{{ xbps_static_byline }}'
+    privkey: '{{ xbps_static_pem_path }}/{{ xbps_static_pem_key }}'
 
+# TODO: improve this interface
 - name: 'Check hex key'
   when: 'downloads is defined'
   register: 'hexkey'
-  command:
-    argv:
-      - '{{ xbps_static_binary_path }}/xbps-query.static'
-      - '--repository={{ xbps_static_cache_path }}'
-      - '-vL'
+  xbps_uncommon:
+    binary_path: '{{ xbps_static_binary_path }}'
+    cache_path: '{{ xbps_static_cache_path }}'
+    list_repos: yes
 
 # need to erase keys in key dir? var/db/xbps/keys --- they don't seem
 # to be ones I've generated? (byline: Void Linux)

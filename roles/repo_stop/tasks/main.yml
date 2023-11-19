@@ -1,21 +1,8 @@
 ---
-- name: 'Read pid file'
+- name: 'Kill process from pidfile'
   when: 'repository_file is exists'
-  register: 'server'
-  slurp:
+  kill_pidfile:
     path: '{{ repository_file }}'
-
-- name: 'Kill pid'
-  when: 'server is not skipped'
-  failed_when: False
-  command:
-    argv:
-      - '/bin/kill'
-      - '{{ server.content | b64decode }}'
-
-- name: 'Delete pid file'
-  file:
-    state: 'absent'
-    path: '{{ repository_file }}'
+    delete_pidfile: yes
 ...
 # vim: set filetype=yaml

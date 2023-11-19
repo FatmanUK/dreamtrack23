@@ -8,10 +8,8 @@
     group: '{{ virts_user }}'
     mode: '0664' # needs to have g+w to work
 
-# TODO: add changed_when / failed_when
 - name: 'Update libguestfs appliance'
-  command:
-    argv:
-      - '/usr/bin/update-libguestfs-appliance'
+  libguestfs:
+    mode: 'update_appliance'
 ...
 # vim: set filetype=yaml

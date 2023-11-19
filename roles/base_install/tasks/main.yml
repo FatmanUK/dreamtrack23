@@ -18,14 +18,9 @@
 # TODO - split off base_install_common for shared tasks with physical_sanitise
 
 - name: 'Create UTF-8 locale'
-  command:
-    argv:
-      - '/usr/bin/localedef'
-      - '-f'
-      - 'UTF-8'
-      - '-i'
-      - 'en_GB'
-      - '/usr/lib64/locale/en_GB.UTF-8'
-
+  localedef:
+    charmap: 'UTF-8'
+    locale: 'en_GB'  # aka input
+    path: '/usr/lib64/locale/en_GB.UTF-8'  # aka outputpath
 ...
 # vim: set filetype=yaml

@@ -1,6 +1,4 @@
 ---
-# TODO: consider for a chrony-hwclock-sync module?
-# Or maybe separate chrony and hwclock modules?
 - name: 'Wait for chronyd to synchronise with an upstream server'
   register: 'rg_wait_sync'
   vars:
@@ -12,10 +10,8 @@
   delay: 1
   until:
     - "(line.split(' ') | last) != s_value"
-  command:
-    argv:
-      - '/usr/bin/chronyc'
-      - 'tracking'
+  chrony:
+    mode: 'tracking'
 
 #- name: 'Debug'
 #  vars:
@@ -26,18 +22,12 @@
 #  debug:
 #    msg: "{{ line.split(' ') | last }}"
 
-# TODO: needs changed_when/failed_when
 - name: 'Step system clock'
-  command:
-    argv:
-      - '/usr/bin/chronyc'
-      - 'makestep'
+  chrony:
+    mode: 'make_step'
 
-# TODO: needs changed_when/failed_when
 - name: 'Sync hardware clock'
-  command:
-    argv:
-      - '/usr/bin/hwclock'
-      - '--systohc'
+  hwclock:
+    mode: 'systohc'
 ...
 # vim: set filetype=yaml

@@ -1,9 +1,8 @@
 ---
-# TODO: maybe put this in /etc/xbps.d ?
 - name: 'Update repository URL'
   become: yes
   vars:
-    file: '/usr/share/xbps.d/00-repository-main.conf'
+    file: '/etc/xbps.d/00-repository-main.conf'
   template:
     src: '{{ file[1:] }}.j2'
     dest: '{{ file }}'
@@ -18,55 +17,27 @@
     insertafter: 'search {{ domain }}'
     backup: yes  # to restore the file afterwards
 
-# Can throw a wobbler if you don't do this first
-- name: 'Update xbps package'
-  register: 'rg_update_xbps'
-  vars:
-    e_already: "Package 'xbps' is up to date"
-  changed_when:
-    - 'rg_update_xbps.rc == 0'
-    - 'e_already not in rg_update_xbps.stdout'
-  become: yes
-  command:
-    argv:
-      - 'xbps-install'
-      - '-Suy'
-      - 'xbps'
-
 - name: 'Install packages'
   register: 'rg_install'
+  become: yes
   vars:
     e_already: 'already installed'
-    prefix:
-      - '/usr/bin/xbps-install'
-      - '-Sy'
   notify: '{{ packages_notifies }}'
-  become: yes
   changed_when:
     - 'rg_install.rc == 0'
     - 'e_already not in rg_install.stdout'
   failed_when:
     - 'rg_install.rc > 0'
     - 'e_already not in rg_install.stdout'
-  command:  # for efficiency
-    argv: '{{ prefix + packages }}'
+  xbps_uncommon:
+    packages: '{{ packages }}'
 
-# Technique only works when source and dest are on the same partition.
-# Guaranteed to be the case here.
-- name: 'Restore original resolv.conf file'
+- name: 'Restore backup resolv.conf file'
   when: 'rg_add_resolver.changed'
   become: yes
-  file:
+  move:
     src: '{{ rg_add_resolver.backup }}'
     dest: '/etc/resolv.conf'
-    state: 'hard'
-    force: yes
-
-- name: 'Remove modified resolv.conf file'
-  when: 'rg_add_resolver.changed'
-  become: yes
-  file:
-    path: '{{ rg_add_resolver.backup }}'
-    state: 'absent'
+    insist: yes
 ...
 # vim: set filetype=yaml

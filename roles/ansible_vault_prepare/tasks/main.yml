@@ -19,7 +19,7 @@
     path: '../{{ ansible_vault_file }}'
     state: 'absent'
 
-# Put it in /dev/shm so it's never in storage
+# Put plaintext in /dev/shm so it's never in storage
 - name: 'Create temporary path'
   register: 'ansible_vault_random_filename'
   tempfile:
@@ -32,16 +32,12 @@
     dest: '{{ ansible_vault_random_filename.path }}'
     mode: '0600'
 
-# TODO: needs changed_when / failed_when
 - name: 'Encrypt the lot'
-  command:
-    argv:
-      - '/usr/bin/ansible-vault'
-      - 'encrypt'
-      - '--vault-password-file=../{{ ansible_vault_secret }}'
-      - '{{ ansible_vault_random_filename.path }}'
-      - '--output'
-      - '../{{ ansible_vault_file }}'
+  ansible_vault:
+    mode: 'encrypt'
+    password_file: '../{{ ansible_vault_secret }}'
+    src: '{{ ansible_vault_random_filename.path }}'
+    dest: '../{{ ansible_vault_file }}'
 
 - name: 'Delete plaintext vault'
   file:
